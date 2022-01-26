@@ -14,13 +14,10 @@ this.fangkehou = this.fangkehou || {};
      *
      * 这是FPlayer构造函数，实现了FPlayer与容器和FPlayer设置参数的绑定，同时也承载FPlayer的类定义。
      *
-     * @class FPlayer
      * @constructor
      *
      * @param {string|HTMLElement} container FPlayer将要填充的容器
      * @param {object} options FPlayer设置参数
-     *
-     * @return {FPlayer} FPlayer对象
      *
      * @example
      * var FPlayer = new fangkehou.FPlayer("container", {
@@ -34,7 +31,7 @@ this.fangkehou = this.fangkehou || {};
     }
 
     /**
-     * FPlayer的初始化函数，与 ‘new FPlayer(...)’ 的作用相同，但是container可以使用container的id代替
+     * FPlayer的创建函数，与 ‘new FPlayer(...)’ 的作用相同，但是container可以使用container的id代替
      *
      * @static
      * @param {string|HTMLElement} container FPlayer将要填充的容器
@@ -44,17 +41,29 @@ this.fangkehou = this.fangkehou || {};
      *
      * @todo 和yao对接，设置默认参数
      */
-    FPlayer.init = function (container, options = {}) {
+    FPlayer.create = function (container, options = {}) {
         if (container instanceof HTMLElement) {
             return new this(container, options);
         }
-        if (container instanceof String) {
-            console.log(document.getElementById(container))
+        if (typeof container === 'string') {
             if (document.getElementById(container)) {
                 return new this(document.getElementById(container), options);
             }
         }
         console.error("Unable to initialize FPlayer: No valid Container available");
+    }
+    /**
+     * FPlayer初始化函数
+     * @todo FPlayer初始化准备
+     */
+    FPlayer.init = function(){
+
+    }
+    /**
+     * FPlayer
+     */
+    FPlayer.update = function(){
+
     }
 
     //todo: 和yao对接，完成FPlayer.THEME_ 主题，FPlayer.MODE_ 模式，FPlayer.ACTION_ 事件等常量设置
@@ -146,14 +155,51 @@ this.fangkehou = this.fangkehou || {};
         this.mListener = listener;
     }
 
-    //文档在FPlayer中。。。。。。
+    //文档在{@link FPlayer}中。。。。。。
     fangkehou.FPlayer = FPlayer;
 
-    function Music() {
-
+    /**
+     * Music 歌曲类
+     *
+     * 主要功能为保存歌曲信息，同时也可以处理部分关于歌词和音频内容的参数
+     *
+     * 会自动把lrc格式的歌词转化成Lyric数组，或者把
+     *
+     * 这是Music类的构造函数，同时也承载Music的类定义。
+     *
+     * @constructor
+     *
+     * @param {string} name 歌曲名
+     * @param {string} artist 演唱者
+     * @param {string} cover 封面链接
+     * @param {string|fangkehou.Lyric[]} lrc 歌词（可以是排序过的Lyric数组，也可以是Lrc文件（字符串格式））
+     * @param {string} content 音频内容（可以是链接（本地或在线）或者Blob类）
+     */
+    function Music(name, artist, cover, lrc, content) {
+        this.name = name;
+        this.artist = artist;
+        this.cover = cover;
+        if(typeof lrc === 'string'){
+            this.lrc = fangkehou.Lyric.fromLrcString(lrc);
+        }
+        if(lrc instanceof Array){
+            this.lrc = lrc;
+        }
+        if(typeof content === 'string'){
+            this.content = content;
+        }
+        if(content instanceof Blob){
+            this.content = URL.createObjectURL(content);
+        }
     }
 
-    //文档在Music中。。。。。。
+    Music.name = undefined;
+    Music.artist = undefined;
+    Music.cover = undefined;
+    Music.lrc = undefined;
+    Music.content = undefined;
+
+    //文档在{@link Music}中。。。。。。
     fangkehou.Music = Music;
 
 
@@ -166,13 +212,10 @@ this.fangkehou = this.fangkehou || {};
      *
      * 这是Lyric类的构造函数，同时也承载Lyric的类定义。
      *
-     * @class Lyric
      * @constructor
      *
      * @param {number} time 开始时间
      * @param {string} lyric 歌词文本
-     *
-     * @return {Lyric} Lyric对象
      *
      */
     function Lyric(time, lyric) {
@@ -197,20 +240,24 @@ this.fangkehou = this.fangkehou || {};
      * @returns {fangkehou.Lyric[]}
      */
     Lyric.fromLrcString = function(lrcString){
+        //先把歌词通过回车切分
         let lyricLines = lrcString.split('\n');
         let lyricsList = [];
         let offset = 0;
-        debugger;
         for(let i = 0; i < lyricLines.length; i++){
+            //去掉每个tag前和后的空格
             let currentLyric = lyricLines[i].replace(/[\s]*\[/g, "[").replace(/][\s]*/g, "]");
             let time = currentLyric.substring(currentLyric.indexOf("[") + 1, currentLyric.indexOf("]")).split(':');
+            //根据定义这里有个offset数值，是歌词整体的偏移量，应该识别一下
             if(time[0].toLowerCase() == "offset"){
                 offset = parseInt(time[1]);
                 continue;
             }
+            //剩下的非时间标签抛掉就好了，对歌词显示没什么用
             if(isNaN(parseInt(time[0]))){
                 continue;
             }
+            //一行歌词可能有多个时间tag，分别代表不同的时间点，应该分出来（这个是lrc格式最烦人的点）
             let reg = /\[[0-9:.]*]/g;
             time = currentLyric.match(reg);
             let lyricStart = 0;
@@ -221,16 +268,18 @@ this.fangkehou = this.fangkehou || {};
             for(let x = 0; x < time.length; x++){
                 let lyricTime = time[x].substring(1, time[x].length);
                 lyricTime = lyricTime.split(':');
+                //把时间转换成秒数（带有一个三位小数表示毫秒）
                 lyricTime = parseFloat(Math.max((parseInt(lyricTime[0]) * 60 + parseFloat(lyricTime[1]) + offset / 1000.0), 0.0).toFixed(3));
                 lyricsList[lyricsList.length] = new fangkehou.Lyric(lyricTime, lyricString);
             }
         }
+        //把混乱的歌词排序
         lyricsList.sort((a, b) => {
             return a.time - b.time;
         })
         return lyricsList;
     }
 
-    //文档在Lyric中。。。。。。
+    //文档在{@link Lyric}中。。。。。。
     fangkehou.Lyric = Lyric;
 }())
