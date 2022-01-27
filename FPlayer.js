@@ -16,7 +16,7 @@ this.fangkehou = this.fangkehou || {};
      *
      * @constructor
      *
-     * @param {string|HTMLElement} container FPlayer将要填充的容器
+     * @param {HTMLElement} container FPlayer将要填充的容器
      * @param {object} options FPlayer设置参数
      *
      * @example
@@ -60,13 +60,41 @@ this.fangkehou = this.fangkehou || {};
 
     }
     /**
-     * FPlayer
+     * FPlayer销毁函数
+     */
+    FPlayer.destroy = function(){
+
+    }
+    /**
+     * FPlayer配置更新后调用函数，本质上是吧FPlayer销毁后重新创建
      */
     FPlayer.update = function(){
 
     }
 
     //todo: 和yao对接，完成FPlayer.THEME_ 主题，FPlayer.MODE_ 模式，FPlayer.ACTION_ 事件等常量设置
+
+    FPlayer.ACTION_READY = "ready";
+
+    FPlayer.ACTION_ON_PLAY = "on_play";
+
+    FPlayer.ACTION_ON_LOAD = "on_load";
+
+    FPlayer.ACTION_ON_PAUSE = "on_pause";
+
+    FPlayer.ACTION_ON_SWITCH = "on_switch";
+
+    FPlayer.ACTION_ON_ADD = "on_add";
+
+    FPlayer.ACTION_ON_NEXT = "on_next";
+
+    FPlayer.ACTION_ON_PREVIOUS = "on_previous";
+
+    FPlayer.MODE_SINGLE = "single";
+
+    FPlayer.MODE_LIST = "list";
+
+    FPlayer.MODE_RANDOM = "random";
 
     /**
      * FPlayer将要填充的容器
@@ -97,6 +125,14 @@ this.fangkehou = this.fangkehou || {};
 
     };
 
+    FPlayer._mView = undefined;
+
+    FPlayer._mVolume = undefined;
+
+    FPlayer._mPlayList = [];
+
+    FPlayer._mCurrentId = undefined;
+
     /**
      * 设置主题
      * @param {number} theme
@@ -117,6 +153,7 @@ this.fangkehou = this.fangkehou || {};
      */
     FPlayer.setMusicList = function (list) {
         this.mMusicList = list;
+        this.change(0);
     }
     /**
      * 获取音乐列表
@@ -131,6 +168,8 @@ this.fangkehou = this.fangkehou || {};
      */
     FPlayer.addMusic = function (music) {
         this.mMusicList[this.mMusicList.length] = music;
+        this._mPlayList[this._mPlayList.length] = music;
+        this._refreshList();
     }
 
     /**
@@ -139,6 +178,7 @@ this.fangkehou = this.fangkehou || {};
      */
     FPlayer.setMode = function (mode) {
         this.mMode = mode;
+        this._refreshList();
     }
     /**
      * 获取当前播放模式
@@ -153,6 +193,132 @@ this.fangkehou = this.fangkehou || {};
      */
     FPlayer.setListener = function (listener) {
         this.mListener = listener;
+    }
+    /**
+     * 播放逻辑
+     */
+    FPlayer.play = function () {
+
+    }
+    /**
+     * 暂停逻辑
+     */
+    FPlayer.pause = function () {
+
+    }
+    /**
+     * 播放器的下一首逻辑
+     */
+    FPlayer.onNext = function(){
+        if(this.mMode === fangkehou.FPlayer.MODE_SINGLE){
+
+            this.dispatchEvent(new CustomEvent(fangkehou.FPlayer.ACTION_ON_NEXT, {
+                "detail": {
+
+                }
+            }))
+            return;
+        }
+        this.next();
+    }
+    /**
+     * 用户指定下一首逻辑
+     */
+    FPlayer.next = function () {
+        let current = this._mPlayList[0];
+        this._mPlayList.shift();
+        this._mPlayList.push(current);
+        current = this._mPlayList[0];
+        this._pushSong(current);
+        this.dispatchEvent(new CustomEvent(fangkehou.FPlayer.ACTION_ON_NEXT, {
+            "detail": {
+
+            }
+        }))
+    }
+    /**
+     * 用户指定上一首逻辑
+     */
+    FPlayer.previous = function () {
+        let current = this._mPlayList[this._mPlayList.length];
+        this._mPlayList.unshift(current);
+        this._mPlayList.pop();
+        this._pushSong(current);
+        this.dispatchEvent(new CustomEvent(fangkehou.FPlayer.ACTION_ON_PREVIOUS, {
+            "detail": {
+
+            }
+        }))
+    }
+    /**
+     * 切歌并重新计算列表
+     * @param {number} id
+     */
+    FPlayer.switch = function(id){
+        this._mPlayList = [];
+        for(let i = id; i < this.mMusicList.length; i++){
+            this._mPlayList[this._mPlayList.length] = this.mMusicList[i];
+        }
+        for(let i = 0; i < id; i++){
+            this._mPlayList[this._mPlayList.length] = this.mMusicList[i];
+        }
+        this._refreshList();
+        let current = this._mPlayList[0];
+        this._pushSong(current);
+        this.dispatchEvent(new Event(fangkehou.FPlayer.ACTION_ON_SWITCH, {
+            "detail": {
+                
+            }
+        }))
+    }
+    /**
+     * 重新生成随机列表
+     * @private
+     */
+    FPlayer._refreshList = function(){
+        if(this.mMode !== fangkehou.FPlayer.MODE_RANDOM){
+            return;
+        }
+        let current = this._mPlayList[0];
+        this._mPlayList.shift();
+        let l = this._mPlayList.length;
+        let index, temp;
+        while(l>0){
+            index = Math.floor(Math.random()*l);
+            temp = this._mPlayList[l-1];
+            this._mPlayList[l-1] = this._mPlayList[index];
+            this._mPlayList[index] = temp;
+            l--;
+        }
+        this._mPlayList.unshift(current);
+    }
+    /**
+     * 通过Music类获取id
+     * @param {fangkehou.Music} music 待寻找音乐
+     * @returns {number} id
+     * @private
+     */
+    FPlayer._getIdByMusic = function(music){
+        if(this.mMusicList.length == 0){
+            return -1;
+        }
+        for(let i = 0; i < this.mMusicList.length; i++){
+            if(music.equals(this.mMusicList[i])){
+                return i;
+            }
+        }
+        return -1;
+    }
+    /**
+     * 向播放器推送歌曲并初始化
+     * @param {fangkehou.Music} music
+     * @private
+     */
+    FPlayer._pushSong = function (music){
+        if(music.equals(this.mMusicList[this._mCurrentId])){
+
+        }
+        this._mCurrentId = this._getIdByMusic(music);
     }
 
     //文档在{@link FPlayer}中。。。。。。
@@ -173,7 +339,7 @@ this.fangkehou = this.fangkehou || {};
      * @param {string} artist 演唱者
      * @param {string} cover 封面链接
      * @param {string|fangkehou.Lyric[]} lrc 歌词（可以是排序过的Lyric数组，也可以是Lrc文件（字符串格式））
-     * @param {string} content 音频内容（可以是链接（本地或在线）或者Blob类）
+     * @param {string|Blob} content 音频内容（可以是链接（本地或在线）或者Blob类）
      */
     function Music(name, artist, cover, lrc, content) {
         this.name = name;
@@ -193,11 +359,55 @@ this.fangkehou = this.fangkehou || {};
         }
     }
 
+    /**
+     * 音乐名称
+     * @type {string}
+     */
     Music.name = undefined;
+    /**
+     * 歌手
+     * @type {string}
+     */
     Music.artist = undefined;
+    /**
+     * 封面（链接，http或blob或base64）
+     * @type {string}
+     */
     Music.cover = undefined;
+    /**
+     * 歌词（Lyric数组）
+     * @type {fangkehou.Lyric[]}
+     */
     Music.lrc = undefined;
+    /**
+     * 音频内容（blob或http）
+     * @type {string}
+     */
     Music.content = undefined;
+    /**
+     * 判断两个Music类是否相同，通过概率判断
+     * @param music
+     */
+    Music.equals = function (music) {
+        let result = 0;
+        if(this.name === music.name) {
+            result++;
+        }
+        if(this.artist === music.artist){
+            result++;
+        }
+        if(this.content === music.content){
+            result++;
+        }
+        if(this.cover === music.cover){
+            result++;
+        }
+        if(result >= 2){
+            return true;
+        }
+        return this.lrc === music.lrc;
+        
+    }
 
     //文档在{@link Music}中。。。。。。
     fangkehou.Music = Music;
