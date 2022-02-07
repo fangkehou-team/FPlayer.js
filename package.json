@@ -1,0 +1,27 @@
+{
+  "name": "fplayer",
+  "version": "0.1.0",
+  "description": "an awesome web music player 一款美观的网页音乐播放器",
+  "main": "dist/fplayer.js",
+  "directories": {
+    "dist": "dist"
+  },
+  "scripts": {
+    "build": "gulp --gulpfile build/gulpfile.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fangkehou-team/FPlayer.git"
+  },
+  "keywords": [
+    "music",
+    "player",
+    "web"
+  ],
+  "author": "Team Fangkehou",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fangkehou-team/FPlayer/issues"
+  },
+  "homepage": "https://github.com/fangkehou-team/FPlayer#readme"
+}

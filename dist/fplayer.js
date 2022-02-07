@@ -5,12 +5,15 @@ this.fangkehou = this.fangkehou || {};
     /**
      * <b>介绍</b><br />
      * 欢迎使用FPlayer - Fangkehou Player ！
-     * 这是一款针对现代化浏览器设计的音乐播放器，具有界面美观，设置方便的优点（净能瞎吹-_-#）
+     * 这是一款针对现代化浏览器设计的音乐播放器，具有界面美观，设置方便的优点（净能瞎吹-_-#）<br/>
      * 您既可以直接以默认设置直接使用，也可以对FPlayer做出自定义的设置
      *
      * FPlayer允许用户通过参数对FPlayer外观，行为进行调整，具体规则及定义如下：
      *
      * @todo 参数的定义
+     * {string} mode: 播放模式（可选三个值：FPlayer.MODE_SINGLE 单曲循环, FPlayer.MODE_LIST 列表循环, FPlayer.MODE_RANDOM 列表随机）<br/>
+     * {boolean} autoPlay: 加载完成自动播放（仅第一首歌需要该设置，且需要用户同意自动播放或用户在网页内操作后才能自动播放）<br/>
+     * {boolean} autoSkip: 播放失败是否自动切换下一曲（true 或 false）
      *
      * 这是FPlayer构造函数，实现了FPlayer与容器和FPlayer设置参数的绑定，同时也承载FPlayer的类定义。
      *
@@ -27,9 +30,48 @@ this.fangkehou = this.fangkehou || {};
      */
     function FPlayer(container, options) {
         this.container = container;
-        //TODO:和yao对接，实现具体功能
+        //TODO:和yao对接，实现view相关
+        this.mMode = options.mode || fangkehou.FPlayer.MODE_LIST;
+        this.mAutoSkip = options.autoSkip || true;
+        this._mPlayer = new Audio();
+        this._mPlayer.mFPlayerInstance = this;
+        this._mPlayer.addEventListener("canplaythrough", function () {
+            //todo: view更新
+            this.mFPlayerInstance.mListener(this.mFPlayerInstance, fangkehou.FPlayer.ACTION_ON_LOAD);
+            if (this.mFPlayerInstance._mIsPlaying) {
+                this.play()
+                    .catch();
+            }
+        })
+        this._mPlayer.addEventListener("pause", function () {
+            //todo: view更新
+            if (this.mFPlayerInstance._mIsPlaying) {
+                console.log("end of song");
+                this.mFPlayerInstance.mListener(this.mFPlayerInstance, fangkehou.FPlayer.ACTION_ON_NEXT);
+                this.mFPlayerInstance.onNext();
+            }
+        })
+        this._mPlayer.addEventListener("error", function () {
+            console.log("failed to load")
+            this.mFPlayerInstance.mListener(this.mFPlayerInstance, fangkehou.FPlayer.ACTION_ON_FAIL);
+            if (this.mFPlayerInstance._mIsPlaying) {
+                if (this.mFPlayerInstance.mAutoSkip) {
+                    this.mFPlayerInstance.next();
+                } else {
+                    //todo:停止并报错，更新view
+                    this.mFPlayerInstance.pause();
+                }
 
+            }
+        })
+        this._mPlayer.addEventListener("timeupdate", function(){
+            this.mFPlayerInstance._doLyricChange(this.currentTime);
+        })
+        console.log("%c FPlayer %c https://github.com/fangkehou-team/FPlayer", "padding: 5px; font-weight: bold; font-size: 20px; color: #272727; background: #FFD033", "padding: 5px; font-weight: bold; font-size: 20px; color: #272727; background: #9EFF3C");
     }
+
+    let f = FPlayer.prototype;
+    f.constructor = FPlayer;
 
     /**
      * FPlayer的创建函数，与 ‘new FPlayer(...)’ 的作用相同，但是container可以使用container的id代替
@@ -57,84 +99,198 @@ this.fangkehou = this.fangkehou || {};
      * FPlayer初始化函数
      * @todo FPlayer初始化准备
      */
-    FPlayer.init = function(){
+    f.init = function () {
 
     }
     /**
      * FPlayer销毁函数
      */
-    FPlayer.destroy = function(){
+    f.destroy = function () {
 
     }
     /**
      * FPlayer配置更新后调用函数，本质上是吧FPlayer销毁后重新创建
      */
-    FPlayer.update = function(){
+    f.update = function () {
 
     }
 
     //todo: 和yao对接，完成FPlayer.THEME_ 主题，FPlayer.MODE_ 模式，FPlayer.ACTION_ 事件等常量设置
-
+    /**
+     * 监听常量，FPlayer加载完成时触发
+     * @type {string}
+     */
     FPlayer.ACTION_PREPARE_READY = "prepare_ready";
-
+    /**
+     * 监听常量，FPlayer加载失败时触发
+     * @type {string}
+     */
     FPlayer.ACTION_PREPARE_FAIL = "prepare_fail";
-
+    /**
+     * 监听常量，开始播放时触发
+     * @type {string}
+     */
     FPlayer.ACTION_ON_PLAY = "on_play";
-
+    /**
+     * 监听常量，音乐加载完成时触发
+     * @type {string}
+     */
     FPlayer.ACTION_ON_LOAD = "on_load";
-
+    /**
+     * 监听常量，暂停时触发
+     * @type {string}
+     */
     FPlayer.ACTION_ON_PAUSE = "on_pause";
-
+    /**
+     * 监听常量，切歌时触发
+     * @type {string}
+     */
     FPlayer.ACTION_ON_SWITCH = "on_switch";
-
-    FPlayer.ACTION_ON_ADD = "on_add";
-
+    /**
+     * 监听常量，下一曲触发
+     * @type {string}
+     */
     FPlayer.ACTION_ON_NEXT = "on_next";
-
+    /**
+     * 监听常量，上一曲触发
+     * @type {string}
+     */
     FPlayer.ACTION_ON_PREVIOUS = "on_previous";
-
+    /**
+     * 监听常量，失败时触发
+     * @type {string}
+     */
+    FPlayer.ACTION_ON_FAIL = "on_fail";
+    /**
+     * 播放模式，单曲循环
+     * @type {string}
+     */
     FPlayer.MODE_SINGLE = "single";
-
+    /**
+     * 播放模式，列表循环
+     * @type {string}
+     */
     FPlayer.MODE_LIST = "list";
-
+    /**
+     * 播放模式，列表随机
+     * @type {string}
+     */
     FPlayer.MODE_RANDOM = "random";
+    /**
+     * 播放器panel模板
+     * @type {string}
+     */
+    FPlayer.TEMPLATE_HTML_PANEL = '';
+    /**
+     * 播放列表模板
+     * @type {string}
+     */
+    FPlayer.TEMPLATE_HTML_LIST = '';
+    /**
+     * 歌词模板
+     * @type {string}
+     */
+    FPlayer.TEMPLATE_HTML_LYRIC = '';
+    /**
+     * CSS
+     * @type {string}
+     */
+    FPlayer.TEMPLATE_CSS = '';
 
     /**
      * FPlayer将要填充的容器
      * @type {HTMLElement}
      */
-    FPlayer.mContainer = undefined;
+    f.mContainer = undefined;
     /**
      * FPlayer主题
      * @type {number}
      */
-    FPlayer.mTheme = undefined;
+    f.mTheme = undefined;
     /**
      * FPlayer音乐列表
-     * @type {Array<fangkehou.Music>}
+     * @type {Array<Music>}
      */
-    FPlayer.mMusicList = [];
+    f.mMusicList = [];
     /**
      * FPlayer播放模式
      * @type {number}
      */
-    FPlayer.mMode = undefined;
+    f.mMode = undefined;
     /**
      * FPlayer事件监听器
-     * @param player
-     * @param event
+     * @type {function(FPlayer, string)}
+     * @param {FPlayer} player 监听返回的播放器
+     * @param {string} event 监听ACTION
      */
-    FPlayer.mListener = function(player, event){
+    f.mListener = function (player, event) {
 
     };
-
-    FPlayer._mView = undefined;
-
-    FPlayer._mVolume = undefined;
-
-    FPlayer._mPlayList = [];
-
-    FPlayer._mCurrentId = undefined;
+    /**
+     * 播放失败自动下一曲
+     * @type {boolean}
+     */
+    f.mAutoSkip = true;
+    /**
+     * 绑定的view
+     * @type {HTMLElement}
+     * @private
+     */
+    f._mView = undefined;
+    /**
+     * 音量
+     * @type {number}
+     * @private
+     */
+    f._mVolume = undefined;
+    /**
+     * 播放列表（真正的播放顺序）
+     * @type {Music[]}
+     * @private
+     */
+    f._mPlayList = [];
+    /**
+     * 当前播放音乐Id
+     * @type {number}
+     * @private
+     */
+    f._mCurrentId = undefined;
+    /**
+     * 当前播放使用的audio标签
+     * @type {HTMLAudioElement}
+     * @private
+     */
+    f._mPlayer = undefined;
+    /**
+     * 当前是否播放音乐
+     * @type {boolean}
+     * @private
+     */
+    f._mIsPlaying = false;
+    /**
+     * 当前音乐的lyric数组
+     * @type {Lyric[]}
+     * @private
+     */
+    f._mCurrentLyric = [];
+    /**
+     * 当前播放到的lyric id
+     * @type {number}
+     * @private
+     */
+    f._mCurrentLyricId = undefined;
+    /**
+     * 该lyric开始时间
+     * @type {number}
+     * @private
+     */
+    f._mCurrentLyricStartTime = undefined;
+    /**
+     * 该lyric停止时间
+     * @type {number}
+     * @private
+     */
+    f._mCurrentLyricEndTime = undefined;
 
     /**
      * 设置主题
@@ -144,41 +300,46 @@ this.fangkehou = this.fangkehou || {};
      */
     FPlayer.setTheme = function (theme) {
         this.mTheme = theme;
+        //todo: 更新view
     }
     /**
      * 获取当前主题
      * @function getTheme
      * @returns {number} 主题代码
      */
-    FPlayer.getTheme = function () {
+    f.getTheme = function () {
         return this.mTheme;
     }
     /**
      * 设置音乐列表
      * @function setMusicList
-     * @param {Array<fangkehou.Music>} list 音乐列表
+     * @param {Array<Music>} list 音乐列表
      */
-    FPlayer.setMusicList = function (list) {
+    f.setMusicList = function (list) {
         this.mMusicList = list;
-        this.change(0);
+        this.switch(0);
     }
     /**
      * 获取音乐列表
      * @function getMusicList
-     * @returns {Array<fangkehou.Music>}
+     * @returns {Array<Music>}
      */
-    FPlayer.getMusicList = function () {
+    f.getMusicList = function () {
         return this.mMusicList;
     }
     /**
      * 添加音乐到列表末尾
      * @function addMusic
-     * @param {fangkehou.Music} music
+     * @param {Music} music
      */
-    FPlayer.addMusic = function (music) {
+    f.addMusic = function (music) {
         this.mMusicList[this.mMusicList.length] = music;
         this._mPlayList[this._mPlayList.length] = music;
-        this._refreshList();
+        if (typeof this._mCurrentId == "undefined") {
+            this.switch(0);
+        } else {
+            this._refreshList();
+        }
     }
 
     /**
@@ -186,7 +347,7 @@ this.fangkehou = this.fangkehou || {};
      * @function setMode
      * @param {number} mode
      */
-    FPlayer.setMode = function (mode) {
+    f.setMode = function (mode) {
         this.mMode = mode;
         this._refreshList();
     }
@@ -195,43 +356,68 @@ this.fangkehou = this.fangkehou || {};
      * @function getMode
      * @returns {number}
      */
-    FPlayer.getMode = function () {
+    f.getMode = function () {
         return this.mMode;
     }
     /**
      * 设置监听器
      * @function setListener
-     * @param {function(fangkehou.FPlayer, number)} listener
+     * @param {function(FPlayer, number)} listener
      */
-    FPlayer.setListener = function (listener) {
+    f.setListener = function (listener) {
         this.mListener = listener;
     }
     /**
      * 播放逻辑
      * @function play
      */
-    FPlayer.play = function () {
-
+    f.play = function () {
+        //todo: 更新view
+        this._mIsPlaying = true;
+        if (this._mPlayer.readyState >= 2) {
+            this._mPlayer.play()
+                .catch();
+        }
     }
     /**
      * 暂停逻辑
      * @function pause
      */
-    FPlayer.pause = function () {
-
+    f.pause = function () {
+        //todo: 更新view
+        this._mIsPlaying = false;
+        this._mPlayer.pause();
+    }
+    /**
+     * 设置进度
+     * @param {number} progress
+     */
+    f.setProgress = function (progress) {
+        if (this._mPlayer.readyState >= 2 && this._mPlayer.duration >= progress) {
+            this._mPlayer.currentTime = progress;
+        }
+    }
+    /**
+     * 音量修改
+     * @param {number} volume
+     */
+    f.setVolume = function (volume) {
+        if(volume >= 0 && volume <= 1){
+            this._mPlayer.volume = volume;
+            return;
+        }
+        console.error("FPlayer: Failed to set volume");
     }
     /**
      * 播放器的下一首逻辑
      * @function onNext
      */
-    FPlayer.onNext = function(){
-        if(this.mMode === fangkehou.FPlayer.MODE_SINGLE){
-
-            this.dispatchEvent(new CustomEvent(fangkehou.FPlayer.ACTION_ON_NEXT, {
-                "detail": {
-
-                }
-            }))
+    f.onNext = function () {
+        console.log("onNext");
+        if (this.mMode === fangkehou.FPlayer.MODE_SINGLE) {
+            console.log("single mode");
+            this._pushSong(this._mPlayList[0]);
+            this.mListener(this, fangkehou.FPlayer.ACTION_ON_NEXT);
             return;
         }
         this.next();
@@ -240,72 +426,61 @@ this.fangkehou = this.fangkehou || {};
      * 用户指定下一首逻辑
      * @function next
      */
-    FPlayer.next = function () {
+    f.next = function () {
         let current = this._mPlayList[0];
         this._mPlayList.shift();
         this._mPlayList.push(current);
         current = this._mPlayList[0];
         this._pushSong(current);
-        this.dispatchEvent(new CustomEvent(fangkehou.FPlayer.ACTION_ON_NEXT, {
-            "detail": {
-
-            }
-        }))
+        this.play();
+        this.mListener(this, fangkehou.FPlayer.ACTION_ON_NEXT);
     }
     /**
      * 用户指定上一首逻辑
      * @function previous
      */
-    FPlayer.previous = function () {
-        let current = this._mPlayList[this._mPlayList.length];
+    f.previous = function () {
+        let current = this._mPlayList[this._mPlayList.length - 1];
         this._mPlayList.unshift(current);
         this._mPlayList.pop();
         this._pushSong(current);
-        this.dispatchEvent(new CustomEvent(fangkehou.FPlayer.ACTION_ON_PREVIOUS, {
-            "detail": {
-
-            }
-        }))
+        this.mListener(this, fangkehou.FPlayer.ACTION_ON_PREVIOUS);
     }
     /**
      * 切歌并重新计算列表
      * @function switch
      * @param {number} id
      */
-    FPlayer.switch = function(id){
+    f.switch = function (id) {
         this._mPlayList = [];
-        for(let i = id; i < this.mMusicList.length; i++){
+        for (let i = id; i < this.mMusicList.length; i++) {
             this._mPlayList[this._mPlayList.length] = this.mMusicList[i];
         }
-        for(let i = 0; i < id; i++){
+        for (let i = 0; i < id; i++) {
             this._mPlayList[this._mPlayList.length] = this.mMusicList[i];
         }
         this._refreshList();
         let current = this._mPlayList[0];
         this._pushSong(current);
-        this.dispatchEvent(new Event(fangkehou.FPlayer.ACTION_ON_SWITCH, {
-            "detail": {
-                
-            }
-        }))
+        this.mListener(this, fangkehou.FPlayer.ACTION_ON_SWITCH);
     }
     /**
      * 重新生成随机列表
      * @function _refreshList
      * @private
      */
-    FPlayer._refreshList = function(){
-        if(this.mMode !== fangkehou.FPlayer.MODE_RANDOM){
+    f._refreshList = function () {
+        if (this.mMode !== fangkehou.FPlayer.MODE_RANDOM) {
             return;
         }
         let current = this._mPlayList[0];
         this._mPlayList.shift();
         let l = this._mPlayList.length;
         let index, temp;
-        while(l>0){
-            index = Math.floor(Math.random()*l);
-            temp = this._mPlayList[l-1];
-            this._mPlayList[l-1] = this._mPlayList[index];
+        while (l > 0) {
+            index = Math.floor(Math.random() * l);
+            temp = this._mPlayList[l - 1];
+            this._mPlayList[l - 1] = this._mPlayList[index];
             this._mPlayList[index] = temp;
             l--;
         }
@@ -314,16 +489,16 @@ this.fangkehou = this.fangkehou || {};
     /**
      * 通过Music类获取id
      * @function _getIdByMusic
-     * @param {fangkehou.Music} music 待寻找音乐
+     * @param {Music} music 待寻找音乐
      * @returns {number} id
      * @private
      */
-    FPlayer._getIdByMusic = function(music){
-        if(this.mMusicList.length == 0){
+    f._getIdByMusic = function (music) {
+        if (this.mMusicList.length == 0) {
             return -1;
         }
-        for(let i = 0; i < this.mMusicList.length; i++){
-            if(music.equals(this.mMusicList[i])){
+        for (let i = 0; i < this.mMusicList.length; i++) {
+            if (music.equals(this.mMusicList[i])) {
                 return i;
             }
         }
@@ -332,17 +507,71 @@ this.fangkehou = this.fangkehou || {};
     /**
      * 向播放器推送歌曲并初始化
      * @function _pushSong
-     * @param {fangkehou.Music} music
+     * @param {Music} music
      * @private
      */
-    FPlayer._pushSong = function (music){
-        if(music.equals(this.mMusicList[this._mCurrentId])){
-
+    f._pushSong = function (music) {
+        console.log("pushSong")
+        if (typeof this._mCurrentId != "undefined" && music.equals(this.mMusicList[this._mCurrentId])) {
+            console.log("single");
+            if (this._mPlayer.readyState >= 2) {
+                this._mPlayer.play()
+                    .catch();
+            }
+            return;
         }
+        console.log("next")
         this._mCurrentId = this._getIdByMusic(music);
+        this._mCurrentLyric = music.lrc;
+        this._switchLyric(0);
+        //todo:view更新
+        this._mPlayer.src = music.content;
+        this._mPlayer.load();
+    }
+    /**
+     * player的监听，负责控制歌词
+     * @param {number} currentTime 当前进度
+     * @private
+     */
+    f._doLyricChange = function(currentTime){
+        if(currentTime >= this._mCurrentLyricStartTime && currentTime < this._mCurrentLyricEndTime){
+            //todo: view更新
+        }else if(currentTime >= this._mCurrentLyricEndTime && this._mCurrentLyricId < this._mCurrentLyric.length - 1){
+            for(let i = this._mCurrentLyricId; i < this._mCurrentLyric.length; i++){
+                if(currentTime <= this._mCurrentLyric[i].time){
+                    this._switchLyric(i - 1);
+                    break;
+                }
+            }
+        }else if(currentTime <= this._mCurrentLyricStartTime){
+            for(let i = 0; i < this._mCurrentLyricId + 1; i++){
+                if(currentTime <= this._mCurrentLyric[i].time){
+                    this._switchLyric(i - 1);
+                    break;
+                }
+            }
+        }
+    }
+    /**
+     * 切换歌词到新的一行
+     * @param {number} currentLyricId 应该切换到的歌词id
+     * @private
+     */
+    f._switchLyric = function(currentLyricId){
+        if(this._mCurrentLyric[currentLyricId].lyric.length != 0){
+            this._mCurrentLyricId = currentLyricId;
+            this._mCurrentLyricStartTime = this._mCurrentLyric[currentLyricId].time;
+            if(typeof this._mCurrentLyric[currentLyricId + 1] != "undefined"){
+                this._mCurrentLyricEndTime = this._mCurrentLyric[currentLyricId + 1].time;
+            }
+            console.log(this._mCurrentLyric[currentLyricId].lyric);
+            //todo: view更新
+        }else{
+            this._mCurrentLyricId = currentLyricId;
+            this._mCurrentLyricEndTime = this._mCurrentLyric[currentLyricId + 1].time;
+        }
     }
 
-    //文档在{@link FPlayer}中。。。。。。
     fangkehou.FPlayer = FPlayer;
 
 }())
@@ -370,21 +599,24 @@ this.fangkehou = this.fangkehou || {};
         this.lyric = lyric;
     }
 
+    let l = Lyric.prototype;
+    l.constructor = Lyric;
+
     /**
      * 这段歌词开始的时间
      * @type {number}
      */
-    Lyric.time = undefined;
+    l.time = undefined;
     /**
      * 这段歌词的文本
      * @type {string}
      */
-    Lyric.lyric = undefined;
+    l.lyric = undefined;
 
     /**
      * 可能是Lyric类中唯一的函数了。。。。。负责解析lrc文件（字符串个事）
      * @param {string} lrcString
-     * @returns {fangkehou.Lyric[]}
+     * @returns {Lyric[]}
      */
     Lyric.fromLrcString = function(lrcString){
         //先把歌词通过回车切分
@@ -449,7 +681,7 @@ this.fangkehou = this.fangkehou || {};
      * @param {string} name 歌曲名
      * @param {string} artist 演唱者
      * @param {string} cover 封面链接
-     * @param {string|fangkehou.Lyric[]} lrc 歌词（可以是排序过的Lyric数组，也可以是Lrc文件（字符串格式））
+     * @param {string|Lyric[]} lrc 歌词（可以是排序过的Lyric数组，也可以是Lrc文件（字符串格式））
      * @param {string|Blob} content 音频内容（可以是链接（本地或在线）或者Blob类）
      */
     function Music(name, artist, cover, lrc, content) {
@@ -470,37 +702,40 @@ this.fangkehou = this.fangkehou || {};
         }
     }
 
+    let m  = Music.prototype;
+    m.constructor = Music;
+
     /**
      * 音乐名称
      * @type {string}
      */
-    Music.name = undefined;
+    m.name = undefined;
     /**
      * 歌手
      * @type {string}
      */
-    Music.artist = undefined;
+    m.artist = undefined;
     /**
      * 封面（链接，http或blob或base64）
      * @type {string}
      */
-    Music.cover = undefined;
+    m.cover = undefined;
     /**
      * 歌词（Lyric数组）
-     * @type {fangkehou.Lyric[]}
+     * @type {Lyric[]}
      */
-    Music.lrc = undefined;
+    m.lrc = undefined;
     /**
      * 音频内容（blob或http）
      * @type {string}
      */
-    Music.content = undefined;
+    m.content = undefined;
     /**
      * 判断两个Music类是否相同，通过概率判断
      * @function equals
-     * @param {fangkehou.Music} music
+     * @param {Music} music
      */
-    Music.equals = function (music) {
+    m.equals = function (music) {
         let result = 0;
         if(this.name === music.name) {
             result++;
@@ -525,4 +760,3 @@ this.fangkehou = this.fangkehou || {};
     fangkehou.Music = Music;
 
 }())
-//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIkZQbGF5ZXIuanMiLCJMeXJpYy5qcyIsIk11c2ljLmpzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQzNWQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUNuRkE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSIsImZpbGUiOiJmcGxheWVyLmpzIiwic291cmNlc0NvbnRlbnQiOlsiLy9mYW5na2Vob3Xlkb3lkI3nqbrpl7TvvIzpgb/lhY3mt7fmt4ZcbnRoaXMuZmFuZ2tlaG91ID0gdGhpcy5mYW5na2Vob3UgfHwge307XG5cbihmdW5jdGlvbiAoKSB7XG4gICAgLyoqXG4gICAgICogPGI+5LuL57uNPC9iPjxiciAvPlxuICAgICAqIOasoui/juS9v+eUqEZQbGF5ZXIgLSBGYW5na2Vob3UgUGxheWVyIO+8gVxuICAgICAqIOi/meaYr+S4gOasvumSiOWvueeOsOS7o+WMlua1j+iniOWZqOiuvuiuoeeahOmfs+S5kOaSreaUvuWZqO+8jOWFt+acieeVjOmdoue+juingu+8jOiuvue9ruaWueS+v+eahOS8mOeCue+8iOWHgOiDveeejuWQuS1fLSPvvIlcbiAgICAgKiDmgqjml6Llj6/ku6Xnm7TmjqXku6Xpu5jorqTorr7nva7nm7TmjqXkvb/nlKjvvIzkuZ/lj6/ku6Xlr7lGUGxheWVy5YGa5Ye66Ieq5a6a5LmJ55qE6K6+572uXG4gICAgICpcbiAgICAgKiBGUGxheWVy5YWB6K6455So5oi36YCa6L+H5Y+C5pWw5a+5RlBsYXllcuWkluingu+8jOihjOS4uui/m+ihjOiwg+aVtO+8jOWFt+S9k+inhOWImeWPiuWumuS5ieWmguS4i++8mlxuICAgICAqXG4gICAgICogQHRvZG8g5Y+C5pWw55qE5a6a5LmJXG4gICAgICpcbiAgICAgKiDov5nmmK9GUGxheWVy5p6E6YCg5Ye95pWw77yM5a6e546w5LqGRlBsYXllcuS4juWuueWZqOWSjEZQbGF5ZXLorr7nva7lj4LmlbDnmoTnu5HlrprvvIzlkIzml7bkuZ/mib/ovb1GUGxheWVy55qE57G75a6a5LmJ44CCXG4gICAgICpcbiAgICAgKiBAY2xhc3MgRlBsYXllclxuICAgICAqIEBjb25zdHJ1Y3RvclxuICAgICAqXG4gICAgICogQHBhcmFtIHtIVE1MRWxlbWVudH0gY29udGFpbmVyIEZQbGF5ZXLlsIbopoHloavlhYXnmoTlrrnlmahcbiAgICAgKiBAcGFyYW0ge29iamVjdH0gb3B0aW9ucyBGUGxheWVy6K6+572u5Y+C5pWwXG4gICAgICpcbiAgICAgKiBAZXhhbXBsZVxuICAgICAqIHZhciBGUGxheWVyID0gbmV3IGZhbmdrZWhvdS5GUGxheWVyLmNyZWF0ZShcImNvbnRhaW5lclwiLCB7XG4gICAgICpcbiAgICAgKiB9KVxuICAgICAqL1xuICAgIGZ1bmN0aW9uIEZQbGF5ZXIoY29udGFpbmVyLCBvcHRpb25zKSB7XG4gICAgICAgIHRoaXMuY29udGFpbmVyID0gY29udGFpbmVyO1xuICAgICAgICAvL1RPRE865ZKMeWFv5a+55o6l77yM5a6e546w5YW35L2T5Yqf6IO9XG5cbiAgICB9XG5cbiAgICAvKipcbiAgICAgKiBGUGxheWVy55qE5Yib5bu65Ye95pWw77yM5LiOIOKAmG5ldyBGUGxheWVyKC4uLinigJkg55qE5L2c55So55u45ZCM77yM5L2G5pivY29udGFpbmVy5Y+v5Lul5L2/55SoY29udGFpbmVy55qEaWTku6Pmm79cbiAgICAgKlxuICAgICAqIEBzdGF0aWNcbiAgICAgKiBAcGFyYW0ge3N0cmluZ3xIVE1MRWxlbWVudH0gY29udGFpbmVyIEZQbGF5ZXLlsIbopoHloavlhYXnmoTlrrnlmahcbiAgICAgKiBAcGFyYW0ge29iamVjdH0gb3B0aW9ucyBGUGxheWVy6K6+572u5Y+C5pWw77yM5LiN6K6+572u5YiZ5L2/55So6buY6K6k5Y+C5pWw77yI6K+m6KeBIEZQbGF5ZXLmnoTpgKDlh73mlbAge0BsaW5rIEZQbGF5ZXIgRlBsYXllcigpfe+8iVxuICAgICAqXG4gICAgICogQHJldHVybiB7RlBsYXllcn0gRlBsYXllcuWvueixoVxuICAgICAqXG4gICAgICogQHRvZG8g5ZKMeWFv5a+55o6l77yM6K6+572u6buY6K6k5Y+C5pWwXG4gICAgICovXG4gICAgRlBsYXllci5jcmVhdGUgPSBmdW5jdGlvbiAoY29udGFpbmVyLCBvcHRpb25zID0ge30pIHtcbiAgICAgICAgaWYgKGNvbnRhaW5lciBpbnN0YW5jZW9mIEhUTUxFbGVtZW50KSB7XG4gICAgICAgICAgICByZXR1cm4gbmV3IHRoaXMoY29udGFpbmVyLCBvcHRpb25zKTtcbiAgICAgICAgfVxuICAgICAgICBpZiAodHlwZW9mIGNvbnRhaW5lciA9PT0gJ3N0cmluZycpIHtcbiAgICAgICAgICAgIGlmIChkb2N1bWVudC5nZXRFbGVtZW50QnlJZChjb250YWluZXIpKSB7XG4gICAgICAgICAgICAgICAgcmV0dXJuIG5ldyB0aGlzKGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKGNvbnRhaW5lciksIG9wdGlvbnMpO1xuICAgICAgICAgICAgfVxuICAgICAgICB9XG4gICAgICAgIGNvbnNvbGUuZXJyb3IoXCJVbmFibGUgdG8gaW5pdGlhbGl6ZSBGUGxheWVyOiBObyB2YWxpZCBDb250YWluZXIgYXZhaWxhYmxlXCIpO1xuICAgIH1cbiAgICAvKipcbiAgICAgKiBGUGxheWVy5Yid5aeL5YyW5Ye95pWwXG4gICAgICogQHRvZG8gRlBsYXllcuWIneWni+WMluWHhuWkh1xuICAgICAqL1xuICAgIEZQbGF5ZXIuaW5pdCA9IGZ1bmN0aW9uKCl7XG5cbiAgICB9XG4gICAgLyoqXG4gICAgICogRlBsYXllcumUgOavgeWHveaVsFxuICAgICAqL1xuICAgIEZQbGF5ZXIuZGVzdHJveSA9IGZ1bmN0aW9uKCl7XG5cbiAgICB9XG4gICAgLyoqXG4gICAgICogRlBsYXllcumFjee9ruabtOaWsOWQjuiwg+eUqOWHveaVsO+8jOacrOi0qOS4iuaYr+WQp0ZQbGF5ZXLplIDmr4HlkI7ph43mlrDliJvlu7pcbiAgICAgKi9cbiAgICBGUGxheWVyLnVwZGF0ZSA9IGZ1bmN0aW9uKCl7XG5cbiAgICB9XG5cbiAgICAvL3RvZG86IOWSjHlhb+WvueaOpe+8jOWujOaIkEZQbGF5ZXIuVEhFTUVfIOS4u+mimO+8jEZQbGF5ZXIuTU9ERV8g5qih5byP77yMRlBsYXllci5BQ1RJT05fIOS6i+S7tuetieW4uOmHj+iuvue9rlxuXG4gICAgRlBsYXllci5BQ1RJT05fUFJFUEFSRV9SRUFEWSA9IFwicHJlcGFyZV9yZWFkeVwiO1xuXG4gICAgRlBsYXllci5BQ1RJT05fUFJFUEFSRV9GQUlMID0gXCJwcmVwYXJlX2ZhaWxcIjtcblxuICAgIEZQbGF5ZXIuQUNUSU9OX09OX1BMQVkgPSBcIm9uX3BsYXlcIjtcblxuICAgIEZQbGF5ZXIuQUNUSU9OX09OX0xPQUQgPSBcIm9uX2xvYWRcIjtcblxuICAgIEZQbGF5ZXIuQUNUSU9OX09OX1BBVVNFID0gXCJvbl9wYXVzZVwiO1xuXG4gICAgRlBsYXllci5BQ1RJT05fT05fU1dJVENIID0gXCJvbl9zd2l0Y2hcIjtcblxuICAgIEZQbGF5ZXIuQUNUSU9OX09OX0FERCA9IFwib25fYWRkXCI7XG5cbiAgICBGUGxheWVyLkFDVElPTl9PTl9ORVhUID0gXCJvbl9uZXh0XCI7XG5cbiAgICBGUGxheWVyLkFDVElPTl9PTl9QUkVWSU9VUyA9IFwib25fcHJldmlvdXNcIjtcblxuICAgIEZQbGF5ZXIuTU9ERV9TSU5HTEUgPSBcInNpbmdsZVwiO1xuXG4gICAgRlBsYXllci5NT0RFX0xJU1QgPSBcImxpc3RcIjtcblxuICAgIEZQbGF5ZXIuTU9ERV9SQU5ET00gPSBcInJhbmRvbVwiO1xuXG4gICAgLyoqXG4gICAgICogRlBsYXllcuWwhuimgeWhq+WFheeahOWuueWZqFxuICAgICAqIEB0eXBlIHtIVE1MRWxlbWVudH1cbiAgICAgKi9cbiAgICBGUGxheWVyLm1Db250YWluZXIgPSB1bmRlZmluZWQ7XG4gICAgLyoqXG4gICAgICogRlBsYXllcuS4u+mimFxuICAgICAqIEB0eXBlIHtudW1iZXJ9XG4gICAgICovXG4gICAgRlBsYXllci5tVGhlbWUgPSB1bmRlZmluZWQ7XG4gICAgLyoqXG4gICAgICogRlBsYXllcumfs+S5kOWIl+ihqFxuICAgICAqIEB0eXBlIHtBcnJheTxmYW5na2Vob3UuTXVzaWM+fVxuICAgICAqL1xuICAgIEZQbGF5ZXIubU11c2ljTGlzdCA9IFtdO1xuICAgIC8qKlxuICAgICAqIEZQbGF5ZXLmkq3mlL7mqKHlvI9cbiAgICAgKiBAdHlwZSB7bnVtYmVyfVxuICAgICAqL1xuICAgIEZQbGF5ZXIubU1vZGUgPSB1bmRlZmluZWQ7XG4gICAgLyoqXG4gICAgICogRlBsYXllcuS6i+S7tuebkeWQrOWZqFxuICAgICAqIEBwYXJhbSBwbGF5ZXJcbiAgICAgKiBAcGFyYW0gZXZlbnRcbiAgICAgKi9cbiAgICBGUGxheWVyLm1MaXN0ZW5lciA9IGZ1bmN0aW9uKHBsYXllciwgZXZlbnQpe1xuXG4gICAgfTtcblxuICAgIEZQbGF5ZXIuX21WaWV3ID0gdW5kZWZpbmVkO1xuXG4gICAgRlBsYXllci5fbVZvbHVtZSA9IHVuZGVmaW5lZDtcblxuICAgIEZQbGF5ZXIuX21QbGF5TGlzdCA9IFtdO1xuXG4gICAgRlBsYXllci5fbUN1cnJlbnRJZCA9IHVuZGVmaW5lZDtcblxuICAgIC8qKlxuICAgICAqIOiuvue9ruS4u+mimFxuICAgICAqXG4gICAgICogQGZ1bmN0aW9uIHNldFRoZW1lXG4gICAgICogQHBhcmFtIHtudW1iZXJ9IHRoZW1lXG4gICAgICovXG4gICAgRlBsYXllci5zZXRUaGVtZSA9IGZ1bmN0aW9uICh0aGVtZSkge1xuICAgICAgICB0aGlzLm1UaGVtZSA9IHRoZW1lO1xuICAgIH1cbiAgICAvKipcbiAgICAgKiDojrflj5blvZPliY3kuLvpophcbiAgICAgKiBAZnVuY3Rpb24gZ2V0VGhlbWVcbiAgICAgKiBAcmV0dXJucyB7bnVtYmVyfSDkuLvpopjku6PnoIFcbiAgICAgKi9cbiAgICBGUGxheWVyLmdldFRoZW1lID0gZnVuY3Rpb24gKCkge1xuICAgICAgICByZXR1cm4gdGhpcy5tVGhlbWU7XG4gICAgfVxuICAgIC8qKlxuICAgICAqIOiuvue9rumfs+S5kOWIl+ihqFxuICAgICAqIEBmdW5jdGlvbiBzZXRNdXNpY0xpc3RcbiAgICAgKiBAcGFyYW0ge0FycmF5PGZhbmdrZWhvdS5NdXNpYz59IGxpc3Qg6Z+z5LmQ5YiX6KGoXG4gICAgICovXG4gICAgRlBsYXllci5zZXRNdXNpY0xpc3QgPSBmdW5jdGlvbiAobGlzdCkge1xuICAgICAgICB0aGlzLm1NdXNpY0xpc3QgPSBsaXN0O1xuICAgICAgICB0aGlzLmNoYW5nZSgwKTtcbiAgICB9XG4gICAgLyoqXG4gICAgICog6I635Y+W6Z+z5LmQ5YiX6KGoXG4gICAgICogQGZ1bmN0aW9uIGdldE11c2ljTGlzdFxuICAgICAqIEByZXR1cm5zIHtBcnJheTxmYW5na2Vob3UuTXVzaWM+fVxuICAgICAqL1xuICAgIEZQbGF5ZXIuZ2V0TXVzaWNMaXN0ID0gZnVuY3Rpb24gKCkge1xuICAgICAgICByZXR1cm4gdGhpcy5tTXVzaWNMaXN0O1xuICAgIH1cbiAgICAvKipcbiAgICAgKiDmt7vliqDpn7PkuZDliLDliJfooajmnKvlsL5cbiAgICAgKiBAZnVuY3Rpb24gYWRkTXVzaWNcbiAgICAgKiBAcGFyYW0ge2ZhbmdrZWhvdS5NdXNpY30gbXVzaWNcbiAgICAgKi9cbiAgICBGUGxheWVyLmFkZE11c2ljID0gZnVuY3Rpb24gKG11c2ljKSB7XG4gICAgICAgIHRoaXMubU11c2ljTGlzdFt0aGlzLm1NdXNpY0xpc3QubGVuZ3RoXSA9IG11c2ljO1xuICAgICAgICB0aGlzLl9tUGxheUxpc3RbdGhpcy5fbVBsYXlMaXN0Lmxlbmd0aF0gPSBtdXNpYztcbiAgICAgICAgdGhpcy5fcmVmcmVzaExpc3QoKTtcbiAgICB9XG5cbiAgICAvKipcbiAgICAgKiDorr7nva7mkq3mlL7mqKHlvI9cbiAgICAgKiBAZnVuY3Rpb24gc2V0TW9kZVxuICAgICAqIEBwYXJhbSB7bnVtYmVyfSBtb2RlXG4gICAgICovXG4gICAgRlBsYXllci5zZXRNb2RlID0gZnVuY3Rpb24gKG1vZGUpIHtcbiAgICAgICAgdGhpcy5tTW9kZSA9IG1vZGU7XG4gICAgICAgIHRoaXMuX3JlZnJlc2hMaXN0KCk7XG4gICAgfVxuICAgIC8qKlxuICAgICAqIOiOt+WPluW9k+WJjeaSreaUvuaooeW8j1xuICAgICAqIEBmdW5jdGlvbiBnZXRNb2RlXG4gICAgICogQHJldHVybnMge251bWJlcn1cbiAgICAgKi9cbiAgICBGUGxheWVyLmdldE1vZGUgPSBmdW5jdGlvbiAoKSB7XG4gICAgICAgIHJldHVybiB0aGlzLm1Nb2RlO1xuICAgIH1cbiAgICAvKipcbiAgICAgKiDorr7nva7nm5HlkKzlmahcbiAgICAgKiBAZnVuY3Rpb24gc2V0TGlzdGVuZXJcbiAgICAgKiBAcGFyYW0ge2Z1bmN0aW9uKGZhbmdrZWhvdS5GUGxheWVyLCBudW1iZXIpfSBsaXN0ZW5lclxuICAgICAqL1xuICAgIEZQbGF5ZXIuc2V0TGlzdGVuZXIgPSBmdW5jdGlvbiAobGlzdGVuZXIpIHtcbiAgICAgICAgdGhpcy5tTGlzdGVuZXIgPSBsaXN0ZW5lcjtcbiAgICB9XG4gICAgLyoqXG4gICAgICog5pKt5pS+6YC76L6RXG4gICAgICogQGZ1bmN0aW9uIHBsYXlcbiAgICAgKi9cbiAgICBGUGxheWVyLnBsYXkgPSBmdW5jdGlvbiAoKSB7XG5cbiAgICB9XG4gICAgLyoqXG4gICAgICog5pqC5YGc6YC76L6RXG4gICAgICogQGZ1bmN0aW9uIHBhdXNlXG4gICAgICovXG4gICAgRlBsYXllci5wYXVzZSA9IGZ1bmN0aW9uICgpIHtcblxuICAgIH1cbiAgICAvKipcbiAgICAgKiDmkq3mlL7lmajnmoTkuIvkuIDpppbpgLvovpFcbiAgICAgKiBAZnVuY3Rpb24gb25OZXh0XG4gICAgICovXG4gICAgRlBsYXllci5vbk5leHQgPSBmdW5jdGlvbigpe1xuICAgICAgICBpZih0aGlzLm1Nb2RlID09PSBmYW5na2Vob3UuRlBsYXllci5NT0RFX1NJTkdMRSl7XG5cbiAgICAgICAgICAgIHRoaXMuZGlzcGF0Y2hFdmVudChuZXcgQ3VzdG9tRXZlbnQoZmFuZ2tlaG91LkZQbGF5ZXIuQUNUSU9OX09OX05FWFQsIHtcbiAgICAgICAgICAgICAgICBcImRldGFpbFwiOiB7XG5cbiAgICAgICAgICAgICAgICB9XG4gICAgICAgICAgICB9KSlcbiAgICAgICAgICAgIHJldHVybjtcbiAgICAgICAgfVxuICAgICAgICB0aGlzLm5leHQoKTtcbiAgICB9XG4gICAgLyoqXG4gICAgICog55So5oi35oyH5a6a5LiL5LiA6aaW6YC76L6RXG4gICAgICogQGZ1bmN0aW9uIG5leHRcbiAgICAgKi9cbiAgICBGUGxheWVyLm5leHQgPSBmdW5jdGlvbiAoKSB7XG4gICAgICAgIGxldCBjdXJyZW50ID0gdGhpcy5fbVBsYXlMaXN0WzBdO1xuICAgICAgICB0aGlzLl9tUGxheUxpc3Quc2hpZnQoKTtcbiAgICAgICAgdGhpcy5fbVBsYXlMaXN0LnB1c2goY3VycmVudCk7XG4gICAgICAgIGN1cnJlbnQgPSB0aGlzLl9tUGxheUxpc3RbMF07XG4gICAgICAgIHRoaXMuX3B1c2hTb25nKGN1cnJlbnQpO1xuICAgICAgICB0aGlzLmRpc3BhdGNoRXZlbnQobmV3IEN1c3RvbUV2ZW50KGZhbmdrZWhvdS5GUGxheWVyLkFDVElPTl9PTl9ORVhULCB7XG4gICAgICAgICAgICBcImRldGFpbFwiOiB7XG5cbiAgICAgICAgICAgIH1cbiAgICAgICAgfSkpXG4gICAgfVxuICAgIC8qKlxuICAgICAqIOeUqOaIt+aMh+WumuS4iuS4gOmmlumAu+i+kVxuICAgICAqIEBmdW5jdGlvbiBwcmV2aW91c1xuICAgICAqL1xuICAgIEZQbGF5ZXIucHJldmlvdXMgPSBmdW5jdGlvbiAoKSB7XG4gICAgICAgIGxldCBjdXJyZW50ID0gdGhpcy5fbVBsYXlMaXN0W3RoaXMuX21QbGF5TGlzdC5sZW5ndGhdO1xuICAgICAgICB0aGlzLl9tUGxheUxpc3QudW5zaGlmdChjdXJyZW50KTtcbiAgICAgICAgdGhpcy5fbVBsYXlMaXN0LnBvcCgpO1xuICAgICAgICB0aGlzLl9wdXNoU29uZyhjdXJyZW50KTtcbiAgICAgICAgdGhpcy5kaXNwYXRjaEV2ZW50KG5ldyBDdXN0b21FdmVudChmYW5na2Vob3UuRlBsYXllci5BQ1RJT05fT05fUFJFVklPVVMsIHtcbiAgICAgICAgICAgIFwiZGV0YWlsXCI6IHtcblxuICAgICAgICAgICAgfVxuICAgICAgICB9KSlcbiAgICB9XG4gICAgLyoqXG4gICAgICog5YiH5q2M5bm26YeN5paw6K6h566X5YiX6KGoXG4gICAgICogQGZ1bmN0aW9uIHN3aXRjaFxuICAgICAqIEBwYXJhbSB7bnVtYmVyfSBpZFxuICAgICAqL1xuICAgIEZQbGF5ZXIuc3dpdGNoID0gZnVuY3Rpb24oaWQpe1xuICAgICAgICB0aGlzLl9tUGxheUxpc3QgPSBbXTtcbiAgICAgICAgZm9yKGxldCBpID0gaWQ7IGkgPCB0aGlzLm1NdXNpY0xpc3QubGVuZ3RoOyBpKyspe1xuICAgICAgICAgICAgdGhpcy5fbVBsYXlMaXN0W3RoaXMuX21QbGF5TGlzdC5sZW5ndGhdID0gdGhpcy5tTXVzaWNMaXN0W2ldO1xuICAgICAgICB9XG4gICAgICAgIGZvcihsZXQgaSA9IDA7IGkgPCBpZDsgaSsrKXtcbiAgICAgICAgICAgIHRoaXMuX21QbGF5TGlzdFt0aGlzLl9tUGxheUxpc3QubGVuZ3RoXSA9IHRoaXMubU11c2ljTGlzdFtpXTtcbiAgICAgICAgfVxuICAgICAgICB0aGlzLl9yZWZyZXNoTGlzdCgpO1xuICAgICAgICBsZXQgY3VycmVudCA9IHRoaXMuX21QbGF5TGlzdFswXTtcbiAgICAgICAgdGhpcy5fcHVzaFNvbmcoY3VycmVudCk7XG4gICAgICAgIHRoaXMuZGlzcGF0Y2hFdmVudChuZXcgRXZlbnQoZmFuZ2tlaG91LkZQbGF5ZXIuQUNUSU9OX09OX1NXSVRDSCwge1xuICAgICAgICAgICAgXCJkZXRhaWxcIjoge1xuICAgICAgICAgICAgICAgIFxuICAgICAgICAgICAgfVxuICAgICAgICB9KSlcbiAgICB9XG4gICAgLyoqXG4gICAgICog6YeN5paw55Sf5oiQ6ZqP5py65YiX6KGoXG4gICAgICogQGZ1bmN0aW9uIF9yZWZyZXNoTGlzdFxuICAgICAqIEBwcml2YXRlXG4gICAgICovXG4gICAgRlBsYXllci5fcmVmcmVzaExpc3QgPSBmdW5jdGlvbigpe1xuICAgICAgICBpZih0aGlzLm1Nb2RlICE9PSBmYW5na2Vob3UuRlBsYXllci5NT0RFX1JBTkRPTSl7XG4gICAgICAgICAgICByZXR1cm47XG4gICAgICAgIH1cbiAgICAgICAgbGV0IGN1cnJlbnQgPSB0aGlzLl9tUGxheUxpc3RbMF07XG4gICAgICAgIHRoaXMuX21QbGF5TGlzdC5zaGlmdCgpO1xuICAgICAgICBsZXQgbCA9IHRoaXMuX21QbGF5TGlzdC5sZW5ndGg7XG4gICAgICAgIGxldCBpbmRleCwgdGVtcDtcbiAgICAgICAgd2hpbGUobD4wKXtcbiAgICAgICAgICAgIGluZGV4ID0gTWF0aC5mbG9vcihNYXRoLnJhbmRvbSgpKmwpO1xuICAgICAgICAgICAgdGVtcCA9IHRoaXMuX21QbGF5TGlzdFtsLTFdO1xuICAgICAgICAgICAgdGhpcy5fbVBsYXlMaXN0W2wtMV0gPSB0aGlzLl9tUGxheUxpc3RbaW5kZXhdO1xuICAgICAgICAgICAgdGhpcy5fbVBsYXlMaXN0W2luZGV4XSA9IHRlbXA7XG4gICAgICAgICAgICBsLS07XG4gICAgICAgIH1cbiAgICAgICAgdGhpcy5fbVBsYXlMaXN0LnVuc2hpZnQoY3VycmVudCk7XG4gICAgfVxuICAgIC8qKlxuICAgICAqIOmAmui/h011c2lj57G76I635Y+WaWRcbiAgICAgKiBAZnVuY3Rpb24gX2dldElkQnlNdXNpY1xuICAgICAqIEBwYXJhbSB7ZmFuZ2tlaG91Lk11c2ljfSBtdXNpYyDlvoXlr7vmib7pn7PkuZBcbiAgICAgKiBAcmV0dXJucyB7bnVtYmVyfSBpZFxuICAgICAqIEBwcml2YXRlXG4gICAgICovXG4gICAgRlBsYXllci5fZ2V0SWRCeU11c2ljID0gZnVuY3Rpb24obXVzaWMpe1xuICAgICAgICBpZih0aGlzLm1NdXNpY0xpc3QubGVuZ3RoID09IDApe1xuICAgICAgICAgICAgcmV0dXJuIC0xO1xuICAgICAgICB9XG4gICAgICAgIGZvcihsZXQgaSA9IDA7IGkgPCB0aGlzLm1NdXNpY0xpc3QubGVuZ3RoOyBpKyspe1xuICAgICAgICAgICAgaWYobXVzaWMuZXF1YWxzKHRoaXMubU11c2ljTGlzdFtpXSkpe1xuICAgICAgICAgICAgICAgIHJldHVybiBpO1xuICAgICAgICAgICAgfVxuICAgICAgICB9XG4gICAgICAgIHJldHVybiAtMTtcbiAgICB9XG4gICAgLyoqXG4gICAgICog5ZCR5pKt5pS+5Zmo5o6o6YCB5q2M5puy5bm25Yid5aeL5YyWXG4gICAgICogQGZ1bmN0aW9uIF9wdXNoU29uZ1xuICAgICAqIEBwYXJhbSB7ZmFuZ2tlaG91Lk11c2ljfSBtdXNpY1xuICAgICAqIEBwcml2YXRlXG4gICAgICovXG4gICAgRlBsYXllci5fcHVzaFNvbmcgPSBmdW5jdGlvbiAobXVzaWMpe1xuICAgICAgICBpZihtdXNpYy5lcXVhbHModGhpcy5tTXVzaWNMaXN0W3RoaXMuX21DdXJyZW50SWRdKSl7XG5cbiAgICAgICAgfVxuICAgICAgICB0aGlzLl9tQ3VycmVudElkID0gdGhpcy5fZ2V0SWRCeU11c2ljKG11c2ljKTtcbiAgICB9XG5cbiAgICAvL+aWh+aho+WcqHtAbGluayBGUGxheWVyfeS4reOAguOAguOAguOAguOAguOAglxuICAgIGZhbmdrZWhvdS5GUGxheWVyID0gRlBsYXllcjtcblxufSgpKSIsIi8vZmFuZ2tlaG915ZG95ZCN56m66Ze077yM6YG/5YWN5re35reGXG50aGlzLmZhbmdrZWhvdSA9IHRoaXMuZmFuZ2tlaG91IHx8IHt9O1xuXG4oZnVuY3Rpb24gKCkge1xuICAgIC8qKlxuICAgICAqIEx5cmljIOatjOivjeexu1xuICAgICAqXG4gICAgICog5Li76KaB5Yqf6IO95Li66KGo56S65ZKM6Kej5p6Q5q2M6K+N77yM5q+P5LiA5LiqTHlyaWPlrp7kvovmmK/kuIDooYzmrYzor43jgIJcbiAgICAgKlxuICAgICAqIOS4gOiIrOaDheWGteS4i0x5cmlj57G75Lya5LulIEFycmF5PEx5cmljPiDnmoTlvaLlvI/lh7rnjrDvvIxMeXJpY+exu+S4reS5n+acieS4k+mXqOeahOaWueazleWwhmxyY+aWh+S7tu+8iOWtl+espuS4suW9ouW8j++8iei9rOaNouaIkEx5cmlj5pWw57uEXG4gICAgICpcbiAgICAgKiDov5nmmK9MeXJpY+exu+eahOaehOmAoOWHveaVsO+8jOWQjOaXtuS5n+aJv+i9vUx5cmlj55qE57G75a6a5LmJ44CCXG4gICAgICpcbiAgICAgKiBAY29uc3RydWN0b3JcbiAgICAgKlxuICAgICAqIEBwYXJhbSB7bnVtYmVyfSB0aW1lIOW8gOWni+aXtumXtFxuICAgICAqIEBwYXJhbSB7c3RyaW5nfSBseXJpYyDmrYzor43mlofmnKxcbiAgICAgKlxuICAgICAqL1xuICAgIGZ1bmN0aW9uIEx5cmljKHRpbWUsIGx5cmljKSB7XG4gICAgICAgIHRoaXMudGltZSA9IHRpbWU7XG4gICAgICAgIHRoaXMubHlyaWMgPSBseXJpYztcbiAgICB9XG5cbiAgICAvKipcbiAgICAgKiDov5nmrrXmrYzor43lvIDlp4vnmoTml7bpl7RcbiAgICAgKiBAdHlwZSB7bnVtYmVyfVxuICAgICAqL1xuICAgIEx5cmljLnRpbWUgPSB1bmRlZmluZWQ7XG4gICAgLyoqXG4gICAgICog6L+Z5q615q2M6K+N55qE5paH5pysXG4gICAgICogQHR5cGUge3N0cmluZ31cbiAgICAgKi9cbiAgICBMeXJpYy5seXJpYyA9IHVuZGVmaW5lZDtcblxuICAgIC8qKlxuICAgICAqIOWPr+iDveaYr0x5cmlj57G75Lit5ZSv5LiA55qE5Ye95pWw5LqG44CC44CC44CC44CC44CC6LSf6LSj6Kej5p6QbHJj5paH5Lu277yI5a2X56ym5Liy5Liq5LqL77yJXG4gICAgICogQHBhcmFtIHtzdHJpbmd9IGxyY1N0cmluZ1xuICAgICAqIEByZXR1cm5zIHtmYW5na2Vob3UuTHlyaWNbXX1cbiAgICAgKi9cbiAgICBMeXJpYy5mcm9tTHJjU3RyaW5nID0gZnVuY3Rpb24obHJjU3RyaW5nKXtcbiAgICAgICAgLy/lhYjmiormrYzor43pgJrov4flm57ovabliIfliIZcbiAgICAgICAgbGV0IGx5cmljTGluZXMgPSBscmNTdHJpbmcuc3BsaXQoJ1xcbicpO1xuICAgICAgICBsZXQgbHlyaWNzTGlzdCA9IFtdO1xuICAgICAgICBsZXQgb2Zmc2V0ID0gMDtcbiAgICAgICAgZm9yKGxldCBpID0gMDsgaSA8IGx5cmljTGluZXMubGVuZ3RoOyBpKyspe1xuICAgICAgICAgICAgLy/ljrvmjonmr4/kuKp0YWfliY3lkozlkI7nmoTnqbrmoLxcbiAgICAgICAgICAgIGxldCBjdXJyZW50THlyaWMgPSBseXJpY0xpbmVzW2ldLnJlcGxhY2UoL1tcXHNdKlxcWy9nLCBcIltcIikucmVwbGFjZSgvXVtcXHNdKi9nLCBcIl1cIik7XG4gICAgICAgICAgICBsZXQgdGltZSA9IGN1cnJlbnRMeXJpYy5zdWJzdHJpbmcoY3VycmVudEx5cmljLmluZGV4T2YoXCJbXCIpICsgMSwgY3VycmVudEx5cmljLmluZGV4T2YoXCJdXCIpKS5zcGxpdCgnOicpO1xuICAgICAgICAgICAgLy/moLnmja7lrprkuYnov5nph4zmnInkuKpvZmZzZXTmlbDlgLzvvIzmmK/mrYzor43mlbTkvZPnmoTlgY/np7vph4/vvIzlupTor6Xor4bliKvkuIDkuItcbiAgICAgICAgICAgIGlmKHRpbWVbMF0udG9Mb3dlckNhc2UoKSA9PSBcIm9mZnNldFwiKXtcbiAgICAgICAgICAgICAgICBvZmZzZXQgPSBwYXJzZUludCh0aW1lWzFdKTtcbiAgICAgICAgICAgICAgICBjb250aW51ZTtcbiAgICAgICAgICAgIH1cbiAgICAgICAgICAgIC8v5Ymp5LiL55qE6Z2e5pe26Ze05qCH562+5oqb5o6J5bCx5aW95LqG77yM5a+55q2M6K+N5pi+56S65rKh5LuA5LmI55SoXG4gICAgICAgICAgICBpZihpc05hTihwYXJzZUludCh0aW1lWzBdKSkpe1xuICAgICAgICAgICAgICAgIGNvbnRpbnVlO1xuICAgICAgICAgICAgfVxuICAgICAgICAgICAgLy/kuIDooYzmrYzor43lj6/og73mnInlpJrkuKrml7bpl7R0YWfvvIzliIbliKvku6PooajkuI3lkIznmoTml7bpl7TngrnvvIzlupTor6XliIblh7rmnaXvvIjov5nkuKrmmK9scmPmoLzlvI/mnIDng6bkurrnmoTngrnvvIlcbiAgICAgICAgICAgIGxldCByZWcgPSAvXFxbWzAtOTouXSpdL2c7XG4gICAgICAgICAgICB0aW1lID0gY3VycmVudEx5cmljLm1hdGNoKHJlZyk7XG4gICAgICAgICAgICBsZXQgbHlyaWNTdGFydCA9IDA7XG4gICAgICAgICAgICBmb3IobGV0IHggPSAwOyB4IDwgdGltZS5sZW5ndGg7IHgrKyl7XG4gICAgICAgICAgICAgICAgbHlyaWNTdGFydCArPSB0aW1lW3hdLmxlbmd0aDtcbiAgICAgICAgICAgIH1cbiAgICAgICAgICAgIGxldCBseXJpY1N0cmluZyA9IGN1cnJlbnRMeXJpYy5zdWJzdHJpbmcobHlyaWNTdGFydCk7XG4gICAgICAgICAgICBmb3IobGV0IHggPSAwOyB4IDwgdGltZS5sZW5ndGg7IHgrKyl7XG4gICAgICAgICAgICAgICAgbGV0IGx5cmljVGltZSA9IHRpbWVbeF0uc3Vic3RyaW5nKDEsIHRpbWVbeF0ubGVuZ3RoKTtcbiAgICAgICAgICAgICAgICBseXJpY1RpbWUgPSBseXJpY1RpbWUuc3BsaXQoJzonKTtcbiAgICAgICAgICAgICAgICAvL+aKiuaXtumXtOi9rOaNouaIkOenkuaVsO+8iOW4puacieS4gOS4quS4ieS9jeWwj+aVsOihqOekuuavq+enku+8iVxuICAgICAgICAgICAgICAgIGx5cmljVGltZSA9IHBhcnNlRmxvYXQoTWF0aC5tYXgoKHBhcnNlSW50KGx5cmljVGltZVswXSkgKiA2MCArIHBhcnNlRmxvYXQobHlyaWNUaW1lWzFdKSArIG9mZnNldCAvIDEwMDAuMCksIDAuMCkudG9GaXhlZCgzKSk7XG4gICAgICAgICAgICAgICAgbHlyaWNzTGlzdFtseXJpY3NMaXN0Lmxlbmd0aF0gPSBuZXcgZmFuZ2tlaG91Lkx5cmljKGx5cmljVGltZSwgbHlyaWNTdHJpbmcpO1xuICAgICAgICAgICAgfVxuICAgICAgICB9XG4gICAgICAgIC8v5oqK5re35Lmx55qE5q2M6K+N5o6S5bqPXG4gICAgICAgIGx5cmljc0xpc3Quc29ydCgoYSwgYikgPT4ge1xuICAgICAgICAgICAgcmV0dXJuIGEudGltZSAtIGIudGltZTtcbiAgICAgICAgfSlcbiAgICAgICAgcmV0dXJuIGx5cmljc0xpc3Q7XG4gICAgfVxuXG4gICAgLy/mlofmoaPlnKh7QGxpbmsgTHlyaWN95Lit44CC44CC44CC44CC44CC44CCXG4gICAgZmFuZ2tlaG91Lkx5cmljID0gTHlyaWM7XG59KCkpIiwiLy9mYW5na2Vob3Xlkb3lkI3nqbrpl7TvvIzpgb/lhY3mt7fmt4ZcbnRoaXMuZmFuZ2tlaG91ID0gdGhpcy5mYW5na2Vob3UgfHwge307XG5cbihmdW5jdGlvbiAoKSB7XG4gICAgLyoqXG4gICAgICogTXVzaWMg5q2M5puy57G7XG4gICAgICpcbiAgICAgKiDkuLvopoHlip/og73kuLrkv53lrZjmrYzmm7Lkv6Hmga/vvIzlkIzml7bkuZ/lj6/ku6XlpITnkIbpg6jliIblhbPkuo7mrYzor43lkozpn7PpopHlhoXlrrnnmoTlj4LmlbBcbiAgICAgKlxuICAgICAqIOS8muiHquWKqOaKimxyY+agvOW8j+eahOatjOivjei9rOWMluaIkEx5cmlj5pWw57uE77yM5oiW6ICF5oqKXG4gICAgICpcbiAgICAgKiDov5nmmK9NdXNpY+exu+eahOaehOmAoOWHveaVsO+8jOWQjOaXtuS5n+aJv+i9vU11c2lj55qE57G75a6a5LmJ44CCXG4gICAgICpcbiAgICAgKiBAY2xhc3MgTXVzaWNcbiAgICAgKiBAY29uc3RydWN0b3JcbiAgICAgKlxuICAgICAqIEBwYXJhbSB7c3RyaW5nfSBuYW1lIOatjOabsuWQjVxuICAgICAqIEBwYXJhbSB7c3RyaW5nfSBhcnRpc3Qg5ryU5ZSx6ICFXG4gICAgICogQHBhcmFtIHtzdHJpbmd9IGNvdmVyIOWwgemdoumTvuaOpVxuICAgICAqIEBwYXJhbSB7c3RyaW5nfGZhbmdrZWhvdS5MeXJpY1tdfSBscmMg5q2M6K+N77yI5Y+v5Lul5piv5o6S5bqP6L+H55qETHlyaWPmlbDnu4TvvIzkuZ/lj6/ku6XmmK9McmPmlofku7bvvIjlrZfnrKbkuLLmoLzlvI/vvInvvIlcbiAgICAgKiBAcGFyYW0ge3N0cmluZ3xCbG9ifSBjb250ZW50IOmfs+mikeWGheWuue+8iOWPr+S7peaYr+mTvuaOpe+8iOacrOWcsOaIluWcqOe6v++8ieaIluiAhUJsb2LnsbvvvIlcbiAgICAgKi9cbiAgICBmdW5jdGlvbiBNdXNpYyhuYW1lLCBhcnRpc3QsIGNvdmVyLCBscmMsIGNvbnRlbnQpIHtcbiAgICAgICAgdGhpcy5uYW1lID0gbmFtZTtcbiAgICAgICAgdGhpcy5hcnRpc3QgPSBhcnRpc3Q7XG4gICAgICAgIHRoaXMuY292ZXIgPSBjb3ZlcjtcbiAgICAgICAgaWYodHlwZW9mIGxyYyA9PT0gJ3N0cmluZycpe1xuICAgICAgICAgICAgdGhpcy5scmMgPSBmYW5na2Vob3UuTHlyaWMuZnJvbUxyY1N0cmluZyhscmMpO1xuICAgICAgICB9XG4gICAgICAgIGlmKGxyYyBpbnN0YW5jZW9mIEFycmF5KXtcbiAgICAgICAgICAgIHRoaXMubHJjID0gbHJjO1xuICAgICAgICB9XG4gICAgICAgIGlmKHR5cGVvZiBjb250ZW50ID09PSAnc3RyaW5nJyl7XG4gICAgICAgICAgICB0aGlzLmNvbnRlbnQgPSBjb250ZW50O1xuICAgICAgICB9XG4gICAgICAgIGlmKGNvbnRlbnQgaW5zdGFuY2VvZiBCbG9iKXtcbiAgICAgICAgICAgIHRoaXMuY29udGVudCA9IFVSTC5jcmVhdGVPYmplY3RVUkwoY29udGVudCk7XG4gICAgICAgIH1cbiAgICB9XG5cbiAgICAvKipcbiAgICAgKiDpn7PkuZDlkI3np7BcbiAgICAgKiBAdHlwZSB7c3RyaW5nfVxuICAgICAqL1xuICAgIE11c2ljLm5hbWUgPSB1bmRlZmluZWQ7XG4gICAgLyoqXG4gICAgICog5q2M5omLXG4gICAgICogQHR5cGUge3N0cmluZ31cbiAgICAgKi9cbiAgICBNdXNpYy5hcnRpc3QgPSB1bmRlZmluZWQ7XG4gICAgLyoqXG4gICAgICog5bCB6Z2i77yI6ZO+5o6l77yMaHR0cOaIlmJsb2LmiJZiYXNlNjTvvIlcbiAgICAgKiBAdHlwZSB7c3RyaW5nfVxuICAgICAqL1xuICAgIE11c2ljLmNvdmVyID0gdW5kZWZpbmVkO1xuICAgIC8qKlxuICAgICAqIOatjOivje+8iEx5cmlj5pWw57uE77yJXG4gICAgICogQHR5cGUge2ZhbmdrZWhvdS5MeXJpY1tdfVxuICAgICAqL1xuICAgIE11c2ljLmxyYyA9IHVuZGVmaW5lZDtcbiAgICAvKipcbiAgICAgKiDpn7PpopHlhoXlrrnvvIhibG9i5oiWaHR0cO+8iVxuICAgICAqIEB0eXBlIHtzdHJpbmd9XG4gICAgICovXG4gICAgTXVzaWMuY29udGVudCA9IHVuZGVmaW5lZDtcbiAgICAvKipcbiAgICAgKiDliKTmlq3kuKTkuKpNdXNpY+exu+aYr+WQpuebuOWQjO+8jOmAmui/h+amgueOh+WIpOaWrVxuICAgICAqIEBmdW5jdGlvbiBlcXVhbHNcbiAgICAgKiBAcGFyYW0ge2ZhbmdrZWhvdS5NdXNpY30gbXVzaWNcbiAgICAgKi9cbiAgICBNdXNpYy5lcXVhbHMgPSBmdW5jdGlvbiAobXVzaWMpIHtcbiAgICAgICAgbGV0IHJlc3VsdCA9IDA7XG4gICAgICAgIGlmKHRoaXMubmFtZSA9PT0gbXVzaWMubmFtZSkge1xuICAgICAgICAgICAgcmVzdWx0Kys7XG4gICAgICAgIH1cbiAgICAgICAgaWYodGhpcy5hcnRpc3QgPT09IG11c2ljLmFydGlzdCl7XG4gICAgICAgICAgICByZXN1bHQrKztcbiAgICAgICAgfVxuICAgICAgICBpZih0aGlzLmNvbnRlbnQgPT09IG11c2ljLmNvbnRlbnQpe1xuICAgICAgICAgICAgcmVzdWx0Kys7XG4gICAgICAgIH1cbiAgICAgICAgaWYodGhpcy5jb3ZlciA9PT0gbXVzaWMuY292ZXIpe1xuICAgICAgICAgICAgcmVzdWx0Kys7XG4gICAgICAgIH1cbiAgICAgICAgaWYocmVzdWx0ID49IDIpe1xuICAgICAgICAgICAgcmV0dXJuIHRydWU7XG4gICAgICAgIH1cbiAgICAgICAgcmV0dXJuIHRoaXMubHJjID09PSBtdXNpYy5scmM7XG5cbiAgICB9XG5cbiAgICAvL+aWh+aho+WcqHtAbGluayBNdXNpY33kuK3jgILjgILjgILjgILjgILjgIJcbiAgICBmYW5na2Vob3UuTXVzaWMgPSBNdXNpYztcblxufSgpKSJdfQ==

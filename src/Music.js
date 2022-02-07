@@ -17,7 +17,7 @@ this.fangkehou = this.fangkehou || {};
      * @param {string} name 歌曲名
      * @param {string} artist 演唱者
      * @param {string} cover 封面链接
-     * @param {string|fangkehou.Lyric[]} lrc 歌词（可以是排序过的Lyric数组，也可以是Lrc文件（字符串格式））
+     * @param {string|Lyric[]} lrc 歌词（可以是排序过的Lyric数组，也可以是Lrc文件（字符串格式））
      * @param {string|Blob} content 音频内容（可以是链接（本地或在线）或者Blob类）
      */
     function Music(name, artist, cover, lrc, content) {
@@ -38,37 +38,40 @@ this.fangkehou = this.fangkehou || {};
         }
     }
 
+    let m  = Music.prototype;
+    m.constructor = Music;
+
     /**
      * 音乐名称
      * @type {string}
      */
-    Music.name = undefined;
+    m.name = undefined;
     /**
      * 歌手
      * @type {string}
      */
-    Music.artist = undefined;
+    m.artist = undefined;
     /**
      * 封面（链接，http或blob或base64）
      * @type {string}
      */
-    Music.cover = undefined;
+    m.cover = undefined;
     /**
      * 歌词（Lyric数组）
-     * @type {fangkehou.Lyric[]}
+     * @type {Lyric[]}
      */
-    Music.lrc = undefined;
+    m.lrc = undefined;
     /**
      * 音频内容（blob或http）
      * @type {string}
      */
-    Music.content = undefined;
+    m.content = undefined;
     /**
      * 判断两个Music类是否相同，通过概率判断
      * @function equals
-     * @param {fangkehou.Music} music
+     * @param {Music} music
      */
-    Music.equals = function (music) {
+    m.equals = function (music) {
         let result = 0;
         if(this.name === music.name) {
             result++;

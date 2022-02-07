@@ -6,14 +6,14 @@ const rename = require('gulp-rename');
 
 
 function js() {
-  return src('../src/*.js', { sourcemaps: true })
+  return src('../src/*.js')
     .pipe(concat('fplayer.js'))
-    .pipe(dest('../dist/', { sourcemaps: true }))
+    .pipe(dest('../dist/'))
     .pipe(uglify({
         mangle:true
     }))
     .pipe(rename({extname: '.min.js'}))
-    .pipe(dest('../dist/', { sourcemaps: true }))
+    .pipe(dest('../dist/'))
 }
 
 exports.js = js;

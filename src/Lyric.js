@@ -22,21 +22,24 @@ this.fangkehou = this.fangkehou || {};
         this.lyric = lyric;
     }
 
+    let l = Lyric.prototype;
+    l.constructor = Lyric;
+
     /**
      * 这段歌词开始的时间
      * @type {number}
      */
-    Lyric.time = undefined;
+    l.time = undefined;
     /**
      * 这段歌词的文本
      * @type {string}
      */
-    Lyric.lyric = undefined;
+    l.lyric = undefined;
 
     /**
      * 可能是Lyric类中唯一的函数了。。。。。负责解析lrc文件（字符串个事）
      * @param {string} lrcString
-     * @returns {fangkehou.Lyric[]}
+     * @returns {Lyric[]}
      */
     Lyric.fromLrcString = function(lrcString){
         //先把歌词通过回车切分

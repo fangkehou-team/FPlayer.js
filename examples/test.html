@@ -3,15 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <script src="../dist/fplayer.min.js"></script>
+    <script src="../dist/fplayer.js"></script>
 </head>
 <body>
 <div id="container">
 </div>
 <script>
     var fplayer = fangkehou.FPlayer.create("container", {
-        string: "ssssss"
+        mode: fangkehou.FPlayer.MODE_LIST,
+        autoSkip: true
     })
+    var xhr = new XMLHttpRequest;
+    xhr.open("GET", "localhost.json");
+    xhr.responseType = "text";
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4) {
+            if ((xhr.status >= 200 && xhr.status < 300) || (xhr.status == 304)) {
+                let result = JSON.parse(xhr.responseText).result;
+                let music_list = []
+                for(let i = 0; i < result.length; i++){
+                    music_list[music_list.length] = new fangkehou.Music(result[i].name, result[i].artist, result[i].cover, result[i].lrc, result[i].url)
+                }
+                fplayer.setMusicList(music_list);
+                fplayer.play()
+            } else {
+                //失败
+            }
+        }
+    }
+    xhr.send();
 </script>
 </body>
 </html>
