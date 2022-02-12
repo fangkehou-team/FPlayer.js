@@ -1,0 +1,206 @@
+/* All star */
+
+
+/* 缓动函数 */
+
+
+/* transition: all 600ms cubic-bezier(.23, 1, .32, 1);
+    animation-duration: 5s; */
+
+
+/* -webkit-transition: all 600ms cubic-bezier(0.95, 0.05, 0.795, 0.035);
+    transition: all 600ms cubic-bezier(0.95, 0.05, 0.795, 0.035); */
+
+*{
+	padding : 0px;
+	margin : 0px;
+	/* animation-duration: 5s; */
+	/* transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1); */
+}
+
+.FPlayer_Animation{
+	transition : all 600ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+
+/* All over */
+
+
+/* musicPlayerBeforeBar star */
+
+.fplayer_panel{
+	width : 300px;
+	height : 160px;
+	/* border: solid 1px black; */
+	position : relative;
+	border-radius : 12px;
+	overflow : hidden;
+	/* padding: 12px; */
+	/* box-sizing: border-box; */
+	box-shadow : 0px 0px 10px black;
+	top : 50px;
+	left : 5px;
+	font-family : Noto Sans CJK SC, sans-serif;
+}
+
+
+/* musicPlayerBeforeBar over */
+
+
+/* 控制面板 star */
+
+.fplayer_control_panel_background{
+	width : 300px;
+	height : 120px;
+	background-color : rgb(70, 46, 124);
+	position : absolute;
+	z-index : 1;
+	background-image : url("data:image/svg+xml;utf8,<svg class=\"icon\" viewBox=\"0 0 1024 1024\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"200\" height=\"200\"><path d=\"M512 0a512 512 0 1 0 512 512 512 512 0 0 0-512-512z m378.24 448h-197.76a187.52 187.52 0 0 0-37.12-64l116.48-155.52A384 384 0 0 1 890.24 448zM576 512a64 64 0 1 1-64-64 64 64 0 0 1 64 64z m-64 384a384 384 0 1 1 152.32-736.64L541.44 323.2A147.84 147.84 0 0 0 512 320a192 192 0 1 0 180.48 256h197.76A384 384 0 0 1 512 896z\" fill=\"%23FFFFFF\"/></svg>");
+	background-size : cover;
+	background-position : 0 10%;
+}
+
+#FPMusicName{
+	overflow : hidden;
+}
+
+#FPArtistName{
+	overflow : hidden;
+}
+
+.fplayer_control_panel{
+	width : 100%;
+	height : 100%;
+	float : right;
+	position : relative;
+	background-color : rgba(0, 0, 0, 0.4);
+	/*background-size: 100% 100%;*/
+	/*background-color: rgba(0, 0, 0, 0.4);*/
+}
+
+.fplayer_detail_panel{
+	width : 100%;
+	height : 60%;
+	float : left;
+}
+
+.fplayer_detail_title{
+	height : 65%;
+	display : block;
+	color : white;
+	width : 100%;
+	font-size : 30px;
+	margin-left : 6%;
+}
+
+.fplayer_detail_artist{
+	width : 100%;
+	height : 35%;
+	display : block;
+	color : #e6e6e6;
+	font-size : 15px;
+	margin-left : 6%;
+}
+
+.fplayer_button_controller{
+	width : 25%;
+	height : 30%;
+	float : left;
+}
+
+.fplayer_button_controller svg{
+	width : 100%;
+	height : 100%;
+}
+
+
+/* 控制面板 over */
+
+
+/* 歌词 star */
+
+.fplayer_lyric_panel{
+	width : 300px;
+	height : 40px;
+	background-color : rgb(88, 67, 139);
+	position : absolute;
+	bottom : 0px;
+	z-index : 1;
+	overflow : hidden;
+}
+
+.fplayer_lyric_panel p{
+	width : 100%;
+	height : 40px;
+	font-size : 25px;
+}
+
+
+.fplayer_lyric_wrapper{
+	color : white;
+	text-align : center;
+	/*overflow: scroll;*/
+	/*overflow: hidden;*/
+	width : 90%;
+	height : 100%;
+	margin-left : 5%;
+	position : absolute;
+	transition : all 600ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.fplayer_lyric_wrapper::-webkit-scrollbar{
+	display : none;
+}
+
+/* 歌词 over */
+
+
+/* 列表 star */
+
+.fplayer_list_panel{
+	width : 100%;
+	height : 100%;
+	background-color : rgb(70, 46, 124);
+	position : relative;
+	z-index : 0;
+	transform : translateY(160px);
+	overflow : scroll;
+	scrollbar-width : none;
+	padding-top : 2px;
+	padding-bottom : 2px;
+	/*padding-top: 2px;*/
+}
+
+.fplayer_list_panel::-webkit-scrollbar{
+	display : none;
+}
+
+.fplayer_list_item{
+	width : 48%;
+	height : 72px;
+	margin : 1%;
+	/*background-color: #fff;*/
+	border-radius : 12px;
+	display : block;
+	float : left;
+	overflow : hidden;
+	box-shadow : 0px 0px 5px #190634;
+	background-size : cover;
+	/*background-position: 0 5%;*/
+	position : relative;
+}
+
+.fplayer_list_content{
+	width : 100%;
+	height : 50%;
+	white-space : nowrap;
+	overflow : hidden;
+	color : white;
+	position : absolute;
+	font-size : 20px;
+	text-align : center;
+	background-color : rgba(0, 0, 0, 0.30);
+}
+
+
+/* 列表 over */

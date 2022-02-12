@@ -29,14 +29,87 @@ this.fangkehou = this.fangkehou || {};
      * })
      */
     function FPlayer(container, options) {
-        this.container = container;
-        //TODO:和yao对接，实现view相关
+        this.mContainer = container;
+        //填充container
+        this._mView = new DOMParser().parseFromString('<div class="fplayer_panel">\n' +
+            '    <div class="fplayer_control_panel_background">\n' +
+            '        <div class="fplayer_control_panel">\n' +
+            '            <div class="fplayer_detail_panel">\n' +
+            '                <p class="fplayer_detail_title">FPlayer</p>\n' +
+            '                <p class="fplayer_detail_artist">Team Fangkehou</p>\n' +
+            '            </div>\n' +
+            '            <div class="fplayer_button_controller" data-action="previous"><svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" fill="white" fill-opacity="0.01"/><path d="M34 36L22 24L34 12" stroke="#FFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 12V36" stroke="#FFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>\n' +
+            '            </div>\n' +
+            '            <div class="fplayer_button_controller fplayer_play_or_pause" data-action="play"><svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" fill="white" fill-opacity="0.01"/><path d="M24 44C35.0457 44 44 35.0457 44 24C44 12.9543 35.0457 4 24 4C12.9543 4 4 12.9543 4 24C4 35.0457 12.9543 44 24 44Z" fill="none" stroke="#FFF" stroke-width="4" stroke-linejoin="round"/><path d="M20 24V17.0718L26 20.5359L32 24L26 27.4641L20 30.9282V24Z" fill="none" stroke="#FFF" stroke-width="4" stroke-linejoin="round"/></svg>\n' +
+            '            </div>\n' +
+            '            <div class="fplayer_button_controller" data-action="next"><svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" fill="white" fill-opacity="0.01"/><path d="M14 12L26 24L14 36" stroke="#FFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M34 12V36" stroke="#FFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>\n' +
+            '            </div>\n' +
+            '            <div class="fplayer_button_controller" data-action="list"><svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M24 19H40" stroke="#FFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 10H40" stroke="#FFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 38H40" stroke="#FFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 28H40" stroke="#FFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 10L16 15L8 20V10Z" fill="none" stroke="#FFF" stroke-width="4" stroke-linejoin="round"/></svg>\n' +
+            '            </div>\n' +
+            '        </div>\n' +
+            '    </div>\n' +
+            '    <div class="fplayer_animation fplayer_lyric_panel">\n' +
+            '        <div class="fplayer_lyric_wrapper">\n' +
+            '            <p data-id="-1">无歌词</p>\n' +
+            '        </div>\n' +
+            '    </div>\n' +
+            '    <div class="fplayer_list_panel">\n' +
+            '        <div class="fplayer_list_item" data-id="-1" style=\'background-image: url("data:image/svg+xml;utf8,' + '<svg class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200"><path d="M512 0a512 512 0 1 0 512 512 512 512 0 0 0-512-512z m378.24 448h-197.76a187.52 187.52 0 0 0-37.12-64l116.48-155.52A384 384 0 0 1 890.24 448zM576 512a64 64 0 1 1-64-64 64 64 0 0 1 64 64z m-64 384a384 384 0 1 1 152.32-736.64L541.44 323.2A147.84 147.84 0 0 0 512 320a192 192 0 1 0 180.48 256h197.76A384 384 0 0 1 512 896z" fill="%23FFFFFF"/></svg>'.replaceAll("\"", "\\\"") +'");\'>\n' +
+            '            <p class="fplayer_list_content" style="top: 0;">FPlayer</p>\n' +
+            '            <p class="fplayer_list_content" style="bottom: 0;">Team Fangkehou</p>\n' +
+            '        </div>\n' +
+        '    </div>\n' +
+        '</div>', 'text/html').querySelector('.fplayer_panel');
+
+        container.appendChild(this._mView);
+        //获取控制按钮
+        let buttons = this._mView.getElementsByClassName("fplayer_button_controller");
+        for(let i = 0; i < buttons.length; i++) {
+            buttons[i].mFPlayerInstance = this;
+            buttons[i].addEventListener("click", function(){
+                switch(this.dataset.action){
+                    case "previous":
+                        this.mFPlayerInstance.previous();
+                        break;
+                    case "pause":
+                        this.dataset.action = "play";
+                        this.mFPlayerInstance.pause();
+                        break;
+                    case "play":
+                        this.dataset.action = "pause";
+                        this.mFPlayerInstance.play();
+                        break;
+                    case "next":
+                        this.mFPlayerInstance.next();
+                        break;
+                    case "list":
+                        this.mFPlayerInstance.openOrCloseList();
+                        break;
+                }
+            })
+        }
+
+        //设置歌词面板点击事件
+        let lyric_panel = this._mView.querySelector(".fplayer_lyric_panel");
+        lyric_panel.mFPlayerInstance = this;
+        lyric_panel.addEventListener("click", function () {
+            this.mFPlayerInstance.openOrCloseLyric();
+        })
+        //设置播放列表面板点击事件
+        let list_panel = this._mView.querySelector(".fplayer_list_panel");
+        list_panel.mFPlayerInstance = this;
+        list_panel.addEventListener("click", function () {
+            this.mFPlayerInstance.openOrCloseList();
+        })
+
+
         this.mMode = options.mode || fangkehou.FPlayer.MODE_LIST;
         this.mAutoSkip = options.autoSkip || true;
+
+
         this._mPlayer = new Audio();
         this._mPlayer.mFPlayerInstance = this;
         this._mPlayer.addEventListener("canplaythrough", function () {
-            //todo: view更新
             this.mFPlayerInstance.mListener(this.mFPlayerInstance, fangkehou.FPlayer.ACTION_ON_LOAD);
             if (this.mFPlayerInstance._mIsPlaying) {
                 this.play()
@@ -44,7 +117,6 @@ this.fangkehou = this.fangkehou || {};
             }
         })
         this._mPlayer.addEventListener("pause", function () {
-            //todo: view更新
             if (this.mFPlayerInstance._mIsPlaying) {
                 console.log("end of song");
                 this.mFPlayerInstance.mListener(this.mFPlayerInstance, fangkehou.FPlayer.ACTION_ON_NEXT);
@@ -58,7 +130,8 @@ this.fangkehou = this.fangkehou || {};
                 if (this.mFPlayerInstance.mAutoSkip) {
                     this.mFPlayerInstance.next();
                 } else {
-                    //todo:停止并报错，更新view
+                    this.mFPlayerInstance._mView.querySelector('.fplayer_detail_title').innerText = 'There is an error!';
+                    this.mFPlayerInstance._mView.querySelector('.fplayer_detail_title').innerText = 'Team Fangkehou';
                     this.mFPlayerInstance.pause();
                 }
 
@@ -94,25 +167,6 @@ this.fangkehou = this.fangkehou || {};
             }
         }
         console.error("Unable to initialize FPlayer: No valid Container available");
-    }
-    /**
-     * FPlayer初始化函数
-     * @todo FPlayer初始化准备
-     */
-    f.init = function () {
-
-    }
-    /**
-     * FPlayer销毁函数
-     */
-    f.destroy = function () {
-
-    }
-    /**
-     * FPlayer配置更新后调用函数，本质上是吧FPlayer销毁后重新创建
-     */
-    f.update = function () {
-
     }
 
     //todo: 和yao对接，完成FPlayer.THEME_ 主题，FPlayer.MODE_ 模式，FPlayer.ACTION_ 事件等常量设置
@@ -176,26 +230,6 @@ this.fangkehou = this.fangkehou || {};
      * @type {string}
      */
     FPlayer.MODE_RANDOM = "random";
-    /**
-     * 播放器panel模板
-     * @type {string}
-     */
-    FPlayer.TEMPLATE_HTML_PANEL = '';
-    /**
-     * 播放列表模板
-     * @type {string}
-     */
-    FPlayer.TEMPLATE_HTML_LIST = '';
-    /**
-     * 歌词模板
-     * @type {string}
-     */
-    FPlayer.TEMPLATE_HTML_LYRIC = '';
-    /**
-     * CSS
-     * @type {string}
-     */
-    FPlayer.TEMPLATE_CSS = '';
 
     /**
      * FPlayer将要填充的容器
@@ -232,7 +266,7 @@ this.fangkehou = this.fangkehou || {};
      */
     f.mAutoSkip = true;
     /**
-     * 绑定的view
+     * FPlayer的view
      * @type {HTMLElement}
      * @private
      */
@@ -291,6 +325,18 @@ this.fangkehou = this.fangkehou || {};
      * @private
      */
     f._mCurrentLyricEndTime = undefined;
+    /**
+     * 当前是否正显示列表
+     * @type {boolean}
+     * @private
+     */
+    f._mIsShowList = false;
+    /**
+     * 当前是否正显示歌词
+     * @type {boolean}
+     * @private
+     */
+    f._mIsShowLyric = false;
 
     /**
      * 设置主题
@@ -298,7 +344,7 @@ this.fangkehou = this.fangkehou || {};
      * @function setTheme
      * @param {number} theme
      */
-    FPlayer.setTheme = function (theme) {
+    f.setTheme = function (theme) {
         this.mTheme = theme;
         //todo: 更新view
     }
@@ -317,6 +363,7 @@ this.fangkehou = this.fangkehou || {};
      */
     f.setMusicList = function (list) {
         this.mMusicList = list;
+        this._updateList();
         this.switch(0);
     }
     /**
@@ -340,6 +387,7 @@ this.fangkehou = this.fangkehou || {};
         } else {
             this._refreshList();
         }
+        this._updateList();
     }
 
     /**
@@ -367,12 +415,38 @@ this.fangkehou = this.fangkehou || {};
     f.setListener = function (listener) {
         this.mListener = listener;
     }
+
+
+    f.openOrCloseList = function (){
+        let list_container = this._mView.querySelector(".fplayer_list_panel");
+        if (this._mIsShowList == false) {
+            list_container.style.cssText = "z-index: 1;transform: translateY(0px);transition: all 600ms cubic-bezier(.23, 1, .32, 1);";
+            this._mIsShowList = true;
+        } else {
+            list_container.style.cssText = "z-index:1;transform: translateY(160px);transition: all 600ms cubic-bezier(.23, 1, .32, 1);";
+            this._mIsShowList = false;
+        }
+    }
+
+    f.openOrCloseLyric = function(){
+        let lyric_container = this._mView.querySelector(".fplayer_lyric_panel");
+        let lyric_wrapper = this._mView.querySelector(".fplayer_lyric_wrapper");
+        if (this._mIsShowLyric == false) {
+            lyric_container.style.cssText = "width: 100%;height:100%;transition: all 600ms cubic-bezier(.23, 1, .32, 1);";
+            lyric_wrapper.style.cssText = "width:100%;height:100%;overflow: scroll;scrollbar-width: none;margin-left:0%;transition: all 600ms cubic-bezier(.23, 1, .32, 1);";
+            this._mIsShowLyric = true;
+        } else {
+            lyric_container.style.cssText = "width: 100%;height:40px;transition: all 600ms cubic-bezier(.23, 1, .32, 1);";
+            lyric_wrapper.style.cssText = "width:90%;height:100%;overflow: hidden;transition: all 600ms cubic-bezier(.23, 1, .32, 1);";
+            this._mIsShowLyric = false;
+        }
+    }
     /**
      * 播放逻辑
      * @function play
      */
     f.play = function () {
-        //todo: 更新view
+        this._mView.querySelector(".fplayer_play_or_pause").innerHTML = '<svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" fill="white" fill-opacity="0.01"/><path d="M24 44C35.0457 44 44 35.0457 44 24C44 12.9543 35.0457 4 24 4C12.9543 4 4 12.9543 4 24C4 35.0457 12.9543 44 24 44Z" fill="none" stroke="#FFF" stroke-width="4" stroke-linejoin="round"/><path d="M19 18V30" stroke="#FFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M29 18V30" stroke="#FFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         this._mIsPlaying = true;
         if (this._mPlayer.readyState >= 2) {
             this._mPlayer.play()
@@ -384,7 +458,7 @@ this.fangkehou = this.fangkehou || {};
      * @function pause
      */
     f.pause = function () {
-        //todo: 更新view
+        this._mView.querySelector(".fplayer_play_or_pause").innerHTML = '<svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" fill="white" fill-opacity="0.01"/><path d="M24 44C35.0457 44 44 35.0457 44 24C44 12.9543 35.0457 4 24 4C12.9543 4 4 12.9543 4 24C4 35.0457 12.9543 44 24 44Z" fill="none" stroke="#FFF" stroke-width="4" stroke-linejoin="round"/><path d="M20 24V17.0718L26 20.5359L32 24L26 27.4641L20 30.9282V24Z" fill="none" stroke="#FFF" stroke-width="4" stroke-linejoin="round"/></svg>';
         this._mIsPlaying = false;
         this._mPlayer.pause();
     }
@@ -447,7 +521,7 @@ this.fangkehou = this.fangkehou || {};
         this.mListener(this, fangkehou.FPlayer.ACTION_ON_PREVIOUS);
     }
     /**
-     * 切歌并重新计算列表
+     * 切歌并重新计算播放列表
      * @function switch
      * @param {number} id
      */
@@ -463,6 +537,33 @@ this.fangkehou = this.fangkehou || {};
         let current = this._mPlayList[0];
         this._pushSong(current);
         this.mListener(this, fangkehou.FPlayer.ACTION_ON_SWITCH);
+    }
+    /**
+     * 更新列表view
+     * @private
+     */
+    f._updateList = function () {
+        if(this.mMusicList.length == 0){
+            return;
+        }
+        let listString = '';
+        for(let i = 0; i < this.mMusicList.length; i++){
+            listString += '<div class="fplayer_list_item" data-id="' + i + '" style=\'background-image: url("' + this.mMusicList[i].cover +'");\'>\n' +
+                '    <p class="fplayer_list_content" style="top: 0;">' + this.mMusicList[i].name + '</p>\n' +
+                '    <p class="fplayer_list_content" style="bottom: 0;">' + this.mMusicList[i].artist + '</p>\n' +
+                '</div>'
+        }
+        let listElements = new DOMParser().parseFromString(listString, 'text/html').getElementsByClassName("fplayer_list_item");
+        let listPanel = this._mView.querySelector(".fplayer_list_panel");
+        listPanel.innerHTML = '';
+
+        for(let i = 0; i < listElements.length; i++){
+            listElements[i].mFPlayerInstance = this;
+            listElements[i].addEventListener("click", function(){
+                this.mFPlayerInstance.switch(this.dataset.id);
+            })
+            listPanel.appendChild(listElements[i]);
+        }
     }
     /**
      * 重新生成随机列表
@@ -524,7 +625,21 @@ this.fangkehou = this.fangkehou || {};
         this._mCurrentId = this._getIdByMusic(music);
         this._mCurrentLyric = music.lrc;
         this._switchLyric(0);
-        //todo:view更新
+
+        //view更新
+        this._mView.querySelector('.fplayer_detail_title').innerHTML = music.name;
+        this._mView.querySelector('.fplayer_detail_artist').innerHTML = music.artist;
+        this._mView.querySelector('.fplayer_control_panel_background').style.backgroundImage = 'url("' + music.cover + '")';
+
+        //歌词view更新
+        if(music.lrc.length > 0){
+            let lyricString = '';
+            for(let i = 0; i < music.lrc.length; i++){
+                lyricString += '<p data-id="' + i + '">' + music.lrc[i].lyric + '</p>'
+            }
+            this._mView.querySelector('.fplayer_lyric_wrapper').innerHTML = lyricString;
+        }
+
         this._mPlayer.src = music.content;
         this._mPlayer.load();
     }
@@ -535,7 +650,7 @@ this.fangkehou = this.fangkehou || {};
      */
     f._doLyricChange = function(currentTime){
         if(currentTime >= this._mCurrentLyricStartTime && currentTime < this._mCurrentLyricEndTime){
-            //todo: view更新
+            //todo: view更新(日后可能会有)
         }else if(currentTime >= this._mCurrentLyricEndTime && this._mCurrentLyricId < this._mCurrentLyric.length - 1){
             for(let i = this._mCurrentLyricId; i < this._mCurrentLyric.length; i++){
                 if(currentTime <= this._mCurrentLyric[i].time){
@@ -558,14 +673,16 @@ this.fangkehou = this.fangkehou || {};
      * @private
      */
     f._switchLyric = function(currentLyricId){
+        if(currentLyricId < 0){
+            currentLyricId = 0;
+        }
         if(this._mCurrentLyric[currentLyricId].lyric.length != 0){
             this._mCurrentLyricId = currentLyricId;
             this._mCurrentLyricStartTime = this._mCurrentLyric[currentLyricId].time;
             if(typeof this._mCurrentLyric[currentLyricId + 1] != "undefined"){
                 this._mCurrentLyricEndTime = this._mCurrentLyric[currentLyricId + 1].time;
             }
-            console.log(this._mCurrentLyric[currentLyricId].lyric);
-            //todo: view更新
+            this._mView.querySelector(".fplayer_lyric_wrapper").style.top = -40 * currentLyricId + 'px';
         }else{
             this._mCurrentLyricId = currentLyricId;
             this._mCurrentLyricEndTime = this._mCurrentLyric[currentLyricId + 1].time;

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <script src="../dist/fplayer.js"></script>
+    <link rel="stylesheet" href="../dist/fplayer.css">
 </head>
 <body>
 <div id="container">
@@ -25,7 +26,6 @@
                     music_list[music_list.length] = new fangkehou.Music(result[i].name, result[i].artist, result[i].cover, result[i].lrc, result[i].url)
                 }
                 fplayer.setMusicList(music_list);
-                fplayer.play()
             } else {
                 //失败
             }
