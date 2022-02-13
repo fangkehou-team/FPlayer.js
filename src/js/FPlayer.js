@@ -54,20 +54,20 @@ this.fangkehou = this.fangkehou || {};
             '        </div>\n' +
             '    </div>\n' +
             '    <div class="fplayer_list_panel">\n' +
-            '        <div class="fplayer_list_item" data-id="-1" style=\'background-image: url("data:image/svg+xml;utf8,' + '{{icon:default_cover}}'.replaceAll("\"", "\\\"") +'");\'>\n' +
+            '        <div class="fplayer_list_item" data-id="-1" style=\'background-image: url("data:image/svg+xml;utf8,' + '{{icon:default_cover}}'.replaceAll("\"", "\\\"") + '");\'>\n' +
             '            <p class="fplayer_list_content" style="top: 0;">FPlayer</p>\n' +
             '            <p class="fplayer_list_content" style="bottom: 0;">Team Fangkehou</p>\n' +
             '        </div>\n' +
-        '    </div>\n' +
-        '</div>', 'text/html').querySelector('.fplayer_panel');
+            '    </div>\n' +
+            '</div>', 'text/html').querySelector('.fplayer_panel');
 
         container.appendChild(this._mView);
         //获取控制按钮
         let buttons = this._mView.getElementsByClassName("fplayer_button_controller");
-        for(let i = 0; i < buttons.length; i++) {
+        for (let i = 0; i < buttons.length; i++) {
             buttons[i].mFPlayerInstance = this;
-            buttons[i].addEventListener("click", function(){
-                switch(this.dataset.action){
+            buttons[i].addEventListener("click", function () {
+                switch (this.dataset.action) {
                     case "previous":
                         this.mFPlayerInstance.previous();
                         break;
@@ -137,7 +137,7 @@ this.fangkehou = this.fangkehou || {};
 
             }
         })
-        this._mPlayer.addEventListener("timeupdate", function(){
+        this._mPlayer.addEventListener("timeupdate", function () {
             this.mFPlayerInstance._doLyricChange(this.currentTime);
         })
         console.log("%c FPlayer %c https://github.com/fangkehou-team/FPlayer", "padding: 5px; font-weight: bold; font-size: 20px; color: #272727; background: #FFD033", "padding: 5px; font-weight: bold; font-size: 20px; color: #272727; background: #9EFF3C");
@@ -417,27 +417,27 @@ this.fangkehou = this.fangkehou || {};
     }
 
 
-    f.openOrCloseList = function (){
+    f.openOrCloseList = function () {
         let list_container = this._mView.querySelector(".fplayer_list_panel");
         if (this._mIsShowList == false) {
-            list_container.style.cssText = "z-index: 1;transform: translateY(0px);transition: all 600ms cubic-bezier(.23, 1, .32, 1);";
+            list_container.style.transform = "translateY(0px)";
             this._mIsShowList = true;
         } else {
-            list_container.style.cssText = "z-index:1;transform: translateY(160px);transition: all 600ms cubic-bezier(.23, 1, .32, 1);";
+            list_container.style.transform = "translateY(160px)";
             this._mIsShowList = false;
         }
     }
 
-    f.openOrCloseLyric = function(){
+    f.openOrCloseLyric = function () {
         let lyric_container = this._mView.querySelector(".fplayer_lyric_panel");
         let lyric_wrapper = this._mView.querySelector(".fplayer_lyric_wrapper");
         if (this._mIsShowLyric == false) {
-            lyric_container.style.cssText = "width: 100%;height:100%;transition: all 600ms cubic-bezier(.23, 1, .32, 1);";
-            lyric_wrapper.style.cssText = "width:100%;height:100%;overflow: scroll;scrollbar-width: none;margin-left:0%;transition: all 600ms cubic-bezier(.23, 1, .32, 1);";
+            lyric_container.style.height = "100%";
+            lyric_wrapper.style.overflow = "scroll";
             this._mIsShowLyric = true;
         } else {
-            lyric_container.style.cssText = "width: 100%;height:40px;transition: all 600ms cubic-bezier(.23, 1, .32, 1);";
-            lyric_wrapper.style.cssText = "width:90%;height:100%;overflow: hidden;position: absolute;transition: all 600ms cubic-bezier(.23, 1, .32, 1);";
+            lyric_container.style.height = "40px";
+            lyric_wrapper.style.overflow = "hidden"
             this._mIsShowLyric = false;
         }
     }
@@ -476,7 +476,7 @@ this.fangkehou = this.fangkehou || {};
      * @param {number} volume
      */
     f.setVolume = function (volume) {
-        if(volume >= 0 && volume <= 1){
+        if (volume >= 0 && volume <= 1) {
             this._mPlayer.volume = volume;
             return;
         }
@@ -543,12 +543,12 @@ this.fangkehou = this.fangkehou || {};
      * @private
      */
     f._updateList = function () {
-        if(this.mMusicList.length == 0){
+        if (this.mMusicList.length == 0) {
             return;
         }
         let listString = '';
-        for(let i = 0; i < this.mMusicList.length; i++){
-            listString += '<div class="fplayer_list_item" data-id="' + i + '" style=\'background-image: url("' + this.mMusicList[i].cover +'");\'>\n' +
+        for (let i = 0; i < this.mMusicList.length; i++) {
+            listString += '<div class="fplayer_list_item" data-id="' + i + '" style=\'background-image: url("' + this.mMusicList[i].cover + '");\'>\n' +
                 '    <p class="fplayer_list_content" style="top: 0;">' + this.mMusicList[i].name + '</p>\n' +
                 '    <p class="fplayer_list_content" style="bottom: 0;">' + this.mMusicList[i].artist + '</p>\n' +
                 '</div>'
@@ -557,9 +557,9 @@ this.fangkehou = this.fangkehou || {};
         let listPanel = this._mView.querySelector(".fplayer_list_panel");
         listPanel.innerHTML = '';
 
-        for(let i = 0; i < listElements.length; i++){
+        for (let i = 0; i < listElements.length; i++) {
             listElements[i].mFPlayerInstance = this;
-            listElements[i].addEventListener("click", function(){
+            listElements[i].addEventListener("click", function () {
                 this.mFPlayerInstance.switch(this.dataset.id);
             })
             listPanel.appendChild(listElements[i]);
@@ -632,9 +632,9 @@ this.fangkehou = this.fangkehou || {};
         this._mView.querySelector('.fplayer_control_panel_background').style.backgroundImage = 'url("' + music.cover + '")';
 
         //歌词view更新
-        if(music.lrc.length > 0){
+        if (music.lrc.length > 0) {
             let lyricString = '';
-            for(let i = 0; i < music.lrc.length; i++){
+            for (let i = 0; i < music.lrc.length; i++) {
                 lyricString += '<p data-id="' + i + '">' + music.lrc[i].lyric + '</p>'
             }
             this._mView.querySelector('.fplayer_lyric_wrapper').innerHTML = lyricString;
@@ -648,19 +648,19 @@ this.fangkehou = this.fangkehou || {};
      * @param {number} currentTime 当前进度
      * @private
      */
-    f._doLyricChange = function(currentTime){
-        if(currentTime >= this._mCurrentLyricStartTime && currentTime < this._mCurrentLyricEndTime){
+    f._doLyricChange = function (currentTime) {
+        if (currentTime >= this._mCurrentLyricStartTime && currentTime < this._mCurrentLyricEndTime) {
             //todo: view更新(日后可能会有)
-        }else if(currentTime >= this._mCurrentLyricEndTime && this._mCurrentLyricId < this._mCurrentLyric.length - 1){
-            for(let i = this._mCurrentLyricId; i < this._mCurrentLyric.length; i++){
-                if(currentTime <= this._mCurrentLyric[i].time){
+        } else if (currentTime >= this._mCurrentLyricEndTime && this._mCurrentLyricId < this._mCurrentLyric.length - 1) {
+            for (let i = this._mCurrentLyricId; i < this._mCurrentLyric.length; i++) {
+                if (currentTime <= this._mCurrentLyric[i].time) {
                     this._switchLyric(i - 1);
                     break;
                 }
             }
-        }else if(currentTime <= this._mCurrentLyricStartTime){
-            for(let i = 0; i < this._mCurrentLyricId + 1; i++){
-                if(currentTime <= this._mCurrentLyric[i].time){
+        } else if (currentTime <= this._mCurrentLyricStartTime) {
+            for (let i = 0; i < this._mCurrentLyricId + 1; i++) {
+                if (currentTime <= this._mCurrentLyric[i].time) {
                     this._switchLyric(i - 1);
                     break;
                 }
@@ -672,18 +672,19 @@ this.fangkehou = this.fangkehou || {};
      * @param {number} currentLyricId 应该切换到的歌词id
      * @private
      */
-    f._switchLyric = function(currentLyricId){
-        if(currentLyricId < 0){
+    f._switchLyric = function (currentLyricId) {
+        if (currentLyricId < 0) {
             currentLyricId = 0;
         }
-        if(this._mCurrentLyric[currentLyricId].lyric.length != 0){
+        if (this._mCurrentLyric[currentLyricId].lyric.length != 0) {
             this._mCurrentLyricId = currentLyricId;
             this._mCurrentLyricStartTime = this._mCurrentLyric[currentLyricId].time;
-            if(typeof this._mCurrentLyric[currentLyricId + 1] != "undefined"){
+            if (typeof this._mCurrentLyric[currentLyricId + 1] != "undefined") {
                 this._mCurrentLyricEndTime = this._mCurrentLyric[currentLyricId + 1].time;
             }
-            this._mView.querySelector(".fplayer_lyric_wrapper").style.top = -40 * currentLyricId + 'px';
-        }else{
+            // this._mView.querySelector(".fplayer_lyric_wrapper").style.top = -40 * currentLyricId + 'px';
+            this._mView.querySelector(".fplayer_lyric_wrapper").style.transform = "translateY(" + -40 * currentLyricId + 'px)';
+        } else {
             this._mCurrentLyricId = currentLyricId;
             this._mCurrentLyricEndTime = this._mCurrentLyric[currentLyricId + 1].time;
         }

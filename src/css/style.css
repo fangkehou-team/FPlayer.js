@@ -12,8 +12,8 @@
     transition: all 600ms cubic-bezier(0.95, 0.05, 0.795, 0.035); */
 
 * {
-    padding: 0px;
     margin: 0px;
+    padding: 0px;
     /* animation-duration: 5s; */
     /* transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1); */
 }
@@ -29,18 +29,18 @@
 /* musicPlayerBeforeBar star */
 
 .fplayer_panel {
-    width: 300px;
-    height: 160px;
-    /* border: solid 1px black; */
+    font-family: Noto Sans CJK SC, sans-serif;
     position: relative;
-    border-radius: 12px;
+    /* border: solid 1px black; */
+    top: 50px;
+    left: 5px;
     overflow: hidden;
     /* padding: 12px; */
     /* box-sizing: border-box; */
+    width: 300px;
+    height: 160px;
+    border-radius: 12px;
     box-shadow: 0px 0px 10px black;
-    top: 50px;
-    left: 5px;
-    font-family: Noto Sans CJK SC, sans-serif;
 }
 
 
@@ -50,14 +50,14 @@
 /* 控制面板 star */
 
 .fplayer_control_panel_background {
+    position: absolute;
+    z-index: 1;
     width: 300px;
     height: 120px;
     background-color: rgb(70, 46, 124);
-    position: absolute;
-    z-index: 1;
     background-image: url('data:image/svg+xml;utf8,{{icon:default_cover}}');
-    background-size: cover;
     background-position: 0 10%;
+    background-size: cover;
 }
 
 #FPMusicName {
@@ -69,49 +69,49 @@
 }
 
 .fplayer_control_panel {
+    position: relative;
+    float: right;
     width: 100%;
     height: 100%;
-    float: right;
-    position: relative;
     background-color: rgba(0, 0, 0, 0.4);
     /*background-size: 100% 100%;*/
     /*background-color: rgba(0, 0, 0, 0.4);*/
 }
 
 .fplayer_detail_panel {
+    float: left;
     width: 100%;
     height: 60%;
-    float: left;
 }
 
 .fplayer_detail_title {
-    height: 47px;
-    display: block;
-    color: white;
-    width: 94%;
     font-size: 30px;
-    margin-left: 6%;
+    display: block;
     overflow: hidden;
-    text-overflow: ellipsis;
+    width: 94%;
+    height: 47px;
+    margin-left: 6%;
     white-space: nowrap;
+    text-overflow: ellipsis;
+    color: white;
 }
 
 .fplayer_detail_artist {
+    font-size: 15px;
+    display: block;
+    overflow: hidden;
     width: 94%;
     height: 25px;
-    display: block;
-    color: #e6e6e6;
-    font-size: 15px;
     margin-left: 6%;
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
+    text-overflow: ellipsis;
+    color: #e6e6e6;
 }
 
 .fplayer_button_controller {
+    float: left;
     width: 25%;
     height: 30%;
-    float: left;
 }
 
 .fplayer_button_controller svg {
@@ -126,36 +126,37 @@
 /* 歌词 star */
 
 .fplayer_lyric_panel {
+    position: absolute;
+    z-index: 1;
+    bottom: 0px;
+    overflow: hidden;
     width: 300px;
     height: 40px;
+    transition: all 600ms cubic-bezier(.23, 1, .32, 1);
     background-color: rgb(88, 67, 139);
-    position: absolute;
-    bottom: 0px;
-    z-index: 1;
-    overflow: hidden;
-}
-
-.fplayer_lyric_panel p {
-    width: 100%;
-    height: 40px;
-    font-size: 25px
 }
 
 
 .fplayer_lyric_wrapper {
-    color: white;
-    text-align: center;
+    position: absolute;
+    width: 100%;
     /*overflow: scroll;*/
     /*overflow: hidden;*/
-    width: 90%;
     height: 100%;
-    margin-left: 5%;
-    position: absolute;
-    transition: all 600ms cubic-bezier(.23, 1, .32, 1);
+    transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1);
+    text-align: center;
+    color: white;
+    scrollbar-width: none;
 }
 
 .fplayer_lyric_wrapper::-webkit-scrollbar {
     display: none;
+}
+
+.fplayer_lyric_wrapper p {
+    font-size: 25px;
+    width: 100%;
+    height: 40px;
 }
 
 /* 歌词 over */
@@ -164,16 +165,17 @@
 /* 列表 star */
 
 .fplayer_list_panel {
+    position: relative;
+    z-index: 1;
+    overflow: scroll;
     width: 100%;
     height: 100%;
-    background-color: rgb(70, 46, 124);
-    position: relative;
-    z-index: 0;
-    transform: translateY(160px);
-    overflow: scroll;
-    scrollbar-width: none;
     padding-top: 2px;
     padding-bottom: 2px;
+    transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1);
+    transform: translateY(160px);
+    background-color: rgb(70, 46, 124);
+    scrollbar-width: none;
     /*padding-top: 2px;*/
 }
 
@@ -182,32 +184,32 @@
 }
 
 .fplayer_list_item {
+    position: relative;
+    display: block;
+    float: left;
+    /*background-color: #fff;*/
+    overflow: hidden;
     width: 48%;
     height: 72px;
     margin: 1%;
-    /*background-color: #fff;*/
     border-radius: 12px;
-    display: block;
-    float: left;
-    overflow: hidden;
-    box-shadow: 0px 0px 5px #190634;
     background-size: cover;
     /*background-position: 0 5%;*/
-    position: relative;
+    box-shadow: 0px 0px 5px #190634;
 }
 
 .fplayer_list_content {
+    font-size: 20px;
+    position: absolute;
+    overflow: hidden;
     width: 100%;
     height: 50%;
-    white-space: nowrap;
-    color: white;
-    position: absolute;
-    font-size: 20px;
     text-align: center;
-    background-color: rgba(0, 0, 0, 0.30);
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.30);
 }
 
 
