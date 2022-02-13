@@ -437,7 +437,7 @@ this.fangkehou = this.fangkehou || {};
             this._mIsShowLyric = true;
         } else {
             lyric_container.style.cssText = "width: 100%;height:40px;transition: all 600ms cubic-bezier(.23, 1, .32, 1);";
-            lyric_wrapper.style.cssText = "width:90%;height:100%;overflow: hidden;transition: all 600ms cubic-bezier(.23, 1, .32, 1);";
+            lyric_wrapper.style.cssText = "width:90%;height:100%;overflow: hidden;position: absolute;transition: all 600ms cubic-bezier(.23, 1, .32, 1);";
             this._mIsShowLyric = false;
         }
     }
