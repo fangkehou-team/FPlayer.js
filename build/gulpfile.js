@@ -27,6 +27,7 @@ function js() {
             return result;
         }))
         .pipe(dest('../dist/'))
+        .pipe(dest('../examples/js/'))
         .pipe(sourcemap.init())
         .pipe(uglify({
             mangle: true
@@ -57,6 +58,7 @@ function css() {
         }))
         .pipe(csscomb())
         .pipe(dest('../dist/'))
+        .pipe(dest('../examples/css/'))
         .pipe(sourcemap.init())
         .pipe(cssmin())
         .pipe(rename({extname: '.min.css'}))
