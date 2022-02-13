@@ -7,12 +7,13 @@ const cssmin = require('gulp-clean-css');
 const autoprefix = require('gulp-autoprefixer');
 const replace = require('gulp-replace');
 const csscomb = require('gulp-csscomb');
+const sourcemap = require('gulp-sourcemaps');
 const fs = require('fs');
 
 
 function js() {
     return src('../src/js/*.js')
-        .pipe(concat('fplayer.js'))
+        .pipe(concat('FPlayer.js'))
         .pipe(replace(/{{icon:([\S]+)}}/g, function (match, p1) {
             let fd = fs.openSync('../src/icon/' + p1 + '.svg','r');
             let result = '';
@@ -26,16 +27,18 @@ function js() {
             return result;
         }))
         .pipe(dest('../dist/'))
+        .pipe(sourcemap.init())
         .pipe(uglify({
             mangle: true
         }))
         .pipe(rename({extname: '.min.js'}))
+        .pipe(sourcemap.write('../dist/',{addComment: true}))
         .pipe(dest('../dist/'))
 }
 
 function css() {
     return src('../src/css/*.css')
-        .pipe(concat('fplayer.css'))
+        .pipe(concat('FPlayer.css'))
         .pipe(replace(/{{icon:([\S]+)}}/g, function (match, p1) {
             let fd = fs.openSync('../src/icon/' + p1 + '.svg','r');
             let result = '';
@@ -54,8 +57,10 @@ function css() {
         }))
         .pipe(csscomb())
         .pipe(dest('../dist/'))
+        .pipe(sourcemap.init())
         .pipe(cssmin())
         .pipe(rename({extname: '.min.css'}))
+        .pipe(sourcemap.write('../dist/',{addComment: true}))
         .pipe(dest('../dist/'))
 }
 

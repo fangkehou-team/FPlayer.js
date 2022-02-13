@@ -1,8 +1,9 @@
 {
-  "name": "fplayer",
-  "version": "0.1.0",
+  "name": "fplayer.js",
+  "version": "0.0.1-alpha",
   "description": "an awesome web music player 一款美观的网页音乐播放器",
-  "main": "dist/fplayer.js",
+  "main": "dist/FPlayer.min.js",
+  "style": "dist/FPlayer.min.css",
   "directories": {
     "dist": "dist"
   },
@@ -11,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fangkehou-team/FPlayer.git"
+    "url": "git+https://github.com/fangkehou-team/FPlayer.js.git"
   },
   "keywords": [
     "music",
@@ -21,7 +22,7 @@
   "author": "Team Fangkehou",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/fangkehou-team/FPlayer/issues"
+    "url": "https://github.com/fangkehou-team/FPlayer.js/issues"
   },
-  "homepage": "https://github.com/fangkehou-team/FPlayer#readme"
+  "homepage": "https://github.com/fangkehou-team/FPlayer.js#readme"
 }
