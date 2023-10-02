@@ -1,7 +1,6 @@
 {
   "name": "fplayer-js",
   "version": "2.0.1",
-  "private": true,
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
