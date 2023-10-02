@@ -1,5 +1,5 @@
 {
-  "name": "fplayer-js",
+  "name": "fplayer.js",
   "version": "2.0.1",
   "scripts": {
     "dev": "vite",
