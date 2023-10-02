@@ -9,3 +9,18 @@
 
 ## 快速开始
 
+### 使用包管理安装（以pnpm为例）
+
+````shell
+pnpm i fplayer.js
+````
+
+### 直接使用（参见index.html）
+
+```html
+<script type="module">
+  import { FPlayer, Music } from "https://cdn.jsdelivr.net/gh/fangkehou-team/FPlayer.js@latest/dist/index.mjs"
+  
+  FPlayer.init();
+</script>
+```
