@@ -2,7 +2,7 @@ import { defineCustomElement } from 'vue'
 import FPlayerCE from './FPlayer.ce.vue'
 import RandomUtil from "@/utils/RandomUtil";
 import LogUtil from "@/utils/LogUtil";
-import type Music from "@/beans/Music";
+import Music from "@/beans/Music";
 import InstanceUtil from "@/utils/InstanceUtil";
 
 const FPlayerComponent = defineCustomElement(FPlayerCE);
@@ -36,7 +36,7 @@ type FPlayerConfig = {
  *
  * });
  */
-export default class FPlayer {
+class FPlayer {
 
   /**
    * 监听常量，FPlayer加载完成时触发
@@ -133,8 +133,8 @@ export default class FPlayer {
     if (container instanceof HTMLElement) {
       return new FPlayer(container, config);
     }
-    if (document.getElementById(container) != null) {
-      return new this(document.getElementById(container)!, config);
+    if (document.querySelector(container) != null) {
+      return new this(document.querySelector(container)!, config);
     }
     throw new Error("Unable to initialize FPlayer: No valid Container available");
   }
@@ -212,3 +212,5 @@ export default class FPlayer {
     })
   }
 }
+export default FPlayer;
+export { FPlayer, Music };

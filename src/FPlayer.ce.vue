@@ -384,6 +384,11 @@ defineExpose({
   height: 40px;
   transition: all 600ms cubic-bezier(0.23, 1, 0.32, 1);
   background-color: rgb(88, 67, 139);
+  scrollbar-width: none;
+}
+
+.fp_lyric_panel::-webkit-scrollbar {
+  display: none;
 }
 
 .fp_lyric_wrapper {

@@ -22,6 +22,7 @@ let propFlag = defineProps({
 });
 
 let currentLyricFlag = ref(0);
+let fpLyricPanel = ref();
 
 function getCurrentLyricId(currentTime: number) {
   let currentLyricId = currentLyricFlag.value;
@@ -105,11 +106,23 @@ function needScroll(index: number){
   return false;
 }
 
+function isFullLyric() {
+  if (!propFlag.fullLyric) {
+    LogUtil.debug(fpLyricPanel);
+
+    if (fpLyricPanel.value != null) {
+      fpLyricPanel.value.scrollTo(0,0);
+    }
+  }
+
+  return propFlag.fullLyric;
+}
+
 LogUtil.debug(propFlag);
 </script>
 
 <template>
-  <div class="fp_animation fp_lyric_panel" :style="propFlag.fullLyric ? {height: '100%', overflow: 'scroll'} : {height: '40px', overflow: 'hidden'}">
+  <div ref="fpLyricPanel" class="fp_animation fp_lyric_panel" :style="isFullLyric() ? {height: '100%', overflow: 'auto'} : {height: '40px', overflow: 'hidden'}">
     <div
       class="fp_lyric_wrapper"
       :style="{ transform: 'translateY(' + -40 * getCurrentLyricId(propFlag.currentTime) + 'px)'}"
