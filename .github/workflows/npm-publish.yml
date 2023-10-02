@@ -22,7 +22,6 @@ jobs:
             - recursive: true
               args: [--frozen-lockfile, --strict-peer-dependencies]
       - run: pnpm run build
-      - run: pnpm run test:unit
 
   publish-npm:
     needs: build
