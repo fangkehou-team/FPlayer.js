@@ -24,3 +24,10 @@ pnpm i fplayer.js
   FPlayer.init();
 </script>
 ```
+
+```html
+<script type="application/javascript" src="https://cdn.jsdelivr.net/npm/fplayer.js@latest/dist/fplayer.umd.js" />
+<script>
+  FPlayer.FPlayer.init();
+</script>
+```
