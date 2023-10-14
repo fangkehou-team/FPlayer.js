@@ -12,8 +12,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: 'src/main.ts',
-      formats: ['es', 'cjs'],
-      fileName: 'index',
+      formats: ['es', 'umd'],
+      fileName: 'fplayer',
       name: "FPlayer",
     }
   },

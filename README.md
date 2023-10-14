@@ -19,7 +19,7 @@ pnpm i fplayer.js
 
 ```html
 <script type="module">
-  import { FPlayer, Music } from "https://cdn.jsdelivr.net/gh/fangkehou-team/FPlayer.js@latest/dist/index.mjs"
+  import { FPlayer, Music } from "https://cdn.jsdelivr.net/npm/fplayer.js@latest/dist/fplayer.mjs"
   
   FPlayer.init();
 </script>
