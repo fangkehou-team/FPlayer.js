@@ -27,7 +27,7 @@ let fpLyricPanel = ref();
 function getCurrentLyricId(currentTime: number) {
   let currentLyricId = currentLyricFlag.value;
 
-  if (propFlag.lyric[currentLyricId] == null) {
+  if (propFlag.lyric[currentLyricId] == null || propFlag.currentTime == 0) {
     currentLyricId = 0;
   }
 

@@ -131,7 +131,6 @@ function jump(index: number) {
   }
 
   refreshList();
-  controlFlag.value.currentTime = 0;
 
   pushMusic(musicList.value[index]);
   play();
@@ -140,6 +139,8 @@ function jump(index: number) {
 }
 
 function pushMusic(music: Music) {
+  controlFlag.value.currentTime = 0;
+
   musicPlayer.value.src = music.content;
   musicPlayer.value.load();
 }

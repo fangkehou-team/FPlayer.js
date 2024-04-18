@@ -33,7 +33,7 @@ function isShowList() {
 
 <template>
   <div ref="fpListPanel" class="fp_list_panel" :style=" isShowList() ? { transform: 'translateY(0px)' } : {}" @click="$emit('close')">
-    <div class="fp_list_item" v-for="(music, index) in propFlag.musicList" :style="{backgroundImage: 'url(' + music.cover + ')'}" @click="$emit('switch', index)">
+    <div class="fp_list_item" v-for="(music, index) in propFlag.musicList" v-bind:key="index" :style="{backgroundImage: 'url(' + music.cover + ')'}" @click="$emit('switch', index)">
       <p class="fp_list_content" style="top: 0;">{{music.name}}</p>
       <p class="fp_list_content" style="bottom: 0;">{{music.artist}}</p>
     </div>
